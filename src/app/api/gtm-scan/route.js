@@ -2,8 +2,128 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import puppeteer from "puppeteer";
+import * as acorn from 'acorn';
 
 /* ...existing code... */
+
+// helper: extract top-level var/let/const data = { ... } object text
+function extractVarObjectFromScript(code, varName = 'data') {
+    if (!code || typeof code !== 'string') return null;
+    // find "var data", "let data" or "const data" or "data =" occurrences
+    const re = new RegExp('\\b(?:var|let|const)\\s+' + varName + '\\s*=|\\b' + varName + '\\s*=', 'i');
+    const m = re.exec(code);
+    if (!m) return null;
+    // start scanning from the first '{' after the match
+    let idx = code.indexOf('{', m.index);
+    if (idx === -1) return null;
+
+    let i = idx;
+    const len = code.length;
+    let depth = 0;
+    let inSingle = false, inDouble = false, inTemplate = false, inRegex = false;
+    let prevChar = '';
+    let inLineComment = false, inBlockComment = false;
+
+    for (; i < len; i++) {
+        const ch = code[i];
+        const next = code[i + 1];
+
+        // handle comments
+        if (!inSingle && !inDouble && !inTemplate && !inRegex) {
+            if (!inBlockComment && ch === '/' && next === '/') { inLineComment = true; i++; prevChar = ''; continue; }
+            if (!inLineComment && ch === '/' && next === '*') { inBlockComment = true; i++; prevChar = ''; continue; }
+        }
+        if (inLineComment) {
+            if (ch === '\n') inLineComment = false;
+            prevChar = ch;
+            continue;
+        }
+        if (inBlockComment) {
+            if (ch === '*' && next === '/') { inBlockComment = false; i++; prevChar = ''; continue; }
+            prevChar = ch;
+            continue;
+        }
+
+        // handle string/regex/template literal state entry/exit
+        if (!inSingle && !inDouble && !inTemplate && ch === '/' && prevChar !== '\\') {
+            // naive detection of regex vs division - we only need to skip regex literals, so attempt a simple heuristic:
+            // if previous non-whitespace char is one of [=,(,:;!?{[}] then treat as start of regex
+            let j = i - 1;
+            while (j >= 0 && /\s/.test(code[j])) j--;
+            const prev = j >= 0 ? code[j] : '';
+            if (prev === '' || /[=(:,;!?+\-*{[\n]/.test(prev)) {
+                inRegex = true;
+                prevChar = ch;
+                continue;
+            }
+        }
+        if (inRegex) {
+            if (ch === '/' && prevChar !== '\\') { inRegex = false; prevChar = ch; continue; }
+            if (ch === '\n') { inRegex = false; } // safety
+            prevChar = ch;
+            continue;
+        }
+
+        if (!inSingle && !inDouble && !inTemplate && ch === "'") { inSingle = true; prevChar = ch; continue; }
+        if (inSingle) { if (ch === "'" && prevChar !== '\\') inSingle = false; prevChar = ch; continue; }
+
+        if (!inSingle && !inDouble && !inTemplate && ch === '"') { inDouble = true; prevChar = ch; continue; }
+        if (inDouble) { if (ch === '"' && prevChar !== '\\') inDouble = false; prevChar = ch; continue; }
+
+        if (!inSingle && !inDouble && !inTemplate && ch === '`') { inTemplate = true; prevChar = ch; continue; }
+        if (inTemplate) {
+            if (ch === '`' && prevChar !== '\\') { inTemplate = false; prevChar = ch; continue; }
+            // skip ${ } expressions inside template: we must still count braces inside expressions - best-effort skip:
+            prevChar = ch;
+            continue;
+        }
+
+        // Now actual brace counting
+        if (ch === '{') {
+            depth++;
+        } else if (ch === '}') {
+            depth--;
+            if (depth === 0) {
+                // extract from initial '{' to this '}'
+                const objText = code.slice(idx, i + 1);
+                return objText;
+            }
+        }
+
+        prevChar = ch;
+    }
+
+    return null; // not found / unbalanced
+}
+
+function extractVarObjectWithAcorn(code, varName = 'data') {
+  try {
+    const ast = acorn.parse(code, { ecmaVersion: 'latest', ranges: true });
+    for (const node of ast.body) {
+      if (node.type === 'VariableDeclaration') {
+        for (const decl of node.declarations) {
+          if (decl.id && decl.id.name === varName && decl.init && decl.init.range) {
+            const [start, end] = decl.init.range;
+            return code.slice(start, end);
+          }
+        }
+      }
+      if (node.type === 'ExpressionStatement' && node.expression && node.expression.type === 'AssignmentExpression') {
+        const a = node.expression;
+        const left = a.left;
+        const leftName = left && (left.name || (left.type === 'MemberExpression' && left.property && left.property.name));
+        if (leftName === varName && a.right && a.right.range) {
+          const [start, end] = a.right.range;
+          return code.slice(start, end);
+        }
+      }
+    }
+  } catch (e) {
+    // parse failed (minified/invalid), return null so you fall back to the heuristic extractor
+    return null;
+  }
+  return null;
+}
 
 // A GET /api/scan?url=... endpoint that runs a headful scan with Puppeteer
 export async function GET(request) {
@@ -151,7 +271,26 @@ export async function GET(request) {
                 const resp = await fetch(gtmUrl, { method: "GET" });
                 if (resp.ok) {
                     const content = await resp.text();
-                    c.gtmJs = { src: gtmUrl, status: resp.status, content, contentLength: content.length };
+
+                    // extract only the var data = { ... } object (prefer Acorn, fallback to scanner)
+                    let dataText = null;
+                    try {
+                        dataText = extractVarObjectWithAcorn(content, 'data');
+                    } catch (e) {
+                        dataText = null;
+                    }
+                    if (!dataText) dataText = extractVarObjectFromScript(content, 'data');
+
+                    // if extraction failed, keep safe fallback (empty string or full content as last resort)
+                    const finalContent = dataText || ""; // <-- exactly what will be returned as c.gtmJs.content
+
+                    c.gtmJs = {
+                        src: gtmUrl,
+                        status: resp.status,
+                        // content now contains only the data object text (or empty string if not found)
+                        content: finalContent,
+                        contentLength: finalContent.length
+                    };
                 } else {
                     c.gtmJs = { src: gtmUrl, status: resp.status };
                 }
@@ -161,12 +300,42 @@ export async function GET(request) {
                     const fallbackPath = path.join(process.cwd(), "..", "temp-folder", "gtmjs.js");
                     if (fs.existsSync(fallbackPath)) {
                         const fallbackContent = fs.readFileSync(fallbackPath, "utf8");
-                        c.gtmJs = { src: `file:${fallbackPath}`, status: 200, content: fallbackContent, contentLength: fallbackContent.length, note: "fetched-from-local-fallback" };
+
+                        // extract data object from fallback too
+                        let dataTextFallback = null;
+                        try {
+                            dataTextFallback = extractVarObjectWithAcorn(fallbackContent, 'data');
+                        } catch (e) {
+                            dataTextFallback = null;
+                        }
+                        if (!dataTextFallback) dataTextFallback = extractVarObjectFromScript(fallbackContent, 'data');
+
+                        const finalFallback = dataTextFallback || "";
+
+                        c.gtmJs = {
+                            src: `file:${fallbackPath}`,
+                            status: 200,
+                            content: finalFallback,
+                            contentLength: finalFallback.length,
+                            note: "fetched-from-local-fallback"
+                        };
                     } else {
                         c.gtmJs = { src: gtmUrl, error: String(err) };
                     }
                 } catch (fsErr) {
                     c.gtmJs = { src: gtmUrl, error: String(err), fsFallbackError: String(fsErr) };
+                }
+            }
+
+            // inside your for (const c of containers) { ... } after c.gtmJs.content exists:
+            if (c.gtmJs && c.gtmJs.content) {
+                // prefer AST extraction, fall back to the existing text-scanner
+                let dataObjText = extractVarObjectWithAcorn(c.gtmJs.content, 'data');
+                if (!dataObjText) dataObjText = extractVarObjectFromScript(c.gtmJs.content, 'data');
+                if (dataObjText) {
+                    c.gtmJs.dataObjectText = dataObjText;
+                } else {
+                    c.gtmJs.dataObjectText = null;
                 }
             }
         }
