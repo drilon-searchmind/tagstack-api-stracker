@@ -20,10 +20,9 @@ export async function GET(request) {
       throw new Error(`Tracer file not found at ${tracerPath}`);
     }
 
-    // dynamic import to avoid build-time/server-bundle issues on Vercel
+    // runtime-safe dynamic loader to avoid bundler static analysis
     async function tryDynamicImport(spec) {
       try {
-        // `new Function` prevents bundlers from statically resolving the import target
         const mod = await new Function(`return import('${spec}')`)();
         return mod && (mod.default || mod);
       } catch (e) {
@@ -31,71 +30,34 @@ export async function GET(request) {
       }
     }
 
-    // try load chrome-aws-lambda and puppeteer-core (production server)
-    let chromium = await tryDynamicImport("chrome-aws-lambda");
+    // prefer @sparticuz/chromium in production for smaller binary; fallback to chrome-aws-lambda
+    let chromium = await tryDynamicImport("@sparticuz/chromium") || await tryDynamicImport("chrome-aws-lambda");
     let puppeteer = await tryDynamicImport("puppeteer-core");
 
-    // If running locally prefer full "puppeteer" (it includes a downloaded Chromium).
-    // This avoids using chrome-aws-lambda + puppeteer-core locally (which requires CHROME_PATH or a downloaded revision).
+    // local dev: prefer full puppeteer (includes downloaded Chromium)
     const isLocalDev = process.env.NODE_ENV !== "production" && !process.env.VERCEL;
     if (isLocalDev) {
       const full = await tryDynamicImport("puppeteer");
       if (full) {
         puppeteer = full;
-        chromium = null; // don't use chrome-aws-lambda shim locally
+        chromium = null; // use local Chromium from full puppeteer
       }
     }
 
-    // Fallback logic: if chrome-aws-lambda missing prefer full puppeteer; if chromium present ensure puppeteer available
-    if (!chromium) {
-      const fullPuppeteer = puppeteer || await tryDynamicImport("puppeteer");
-      if (fullPuppeteer) puppeteer = fullPuppeteer;
-    } else {
-      if (!puppeteer) {
-        const fullFallback = await tryDynamicImport("puppeteer");
-        if (fullFallback) puppeteer = fullFallback;
-      }
-    }
-
-    // Ensure we have a usable chromium executable path when using puppeteer-core.
-    // If using chrome-aws-lambda, get its executablePath. Otherwise, if puppeteer (full) is used,
-    // it will manage its own local Chromium.
     if (!puppeteer) {
       throw new Error("No puppeteer runtime found. Install puppeteer-core or puppeteer.");
     }
 
+    // get execPath (handle function or string)
     let execPath;
-    if (chromium && typeof chromium.executablePath === "function") {
-      execPath = await chromium.executablePath();
-    } else if (chromium && chromium.executablePath) {
-      execPath = chromium.executablePath;
-    } else {
-      // no chrome-aws-lambda available: if puppeteer-core is in use without an execPath, try to switch
-      // to full puppeteer (it has local Chromium). If still puppeteer-core and no execPath, require CHROME_PATH.
-      if (String(puppeteer?.version?.()).includes("core") || !chromium) {
-        // try to ensure full puppeteer is used when possible (already attempted above)
-        execPath = process.env.CHROME_PATH || undefined;
-      } else {
-        execPath = process.env.CHROME_PATH || undefined;
-      }
-    }
+    if (chromium && typeof chromium.executablePath === "function") execPath = await chromium.executablePath();
+    else if (chromium && chromium.executablePath) execPath = chromium.executablePath;
+    else execPath = process.env.CHROME_PATH || undefined;
+    if (execPath && typeof execPath.then === "function") execPath = await execPath;
 
-    if (execPath && typeof execPath.then === "function") {
-      execPath = await execPath;
-    }
-
-    const launchArgs = [
-      ...((chromium && chromium.args && chromium.args.length) ? chromium.args : []),
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-    ];
-
-    const launchOptions = {
-      args: launchArgs,
-      defaultViewport: chromium?.defaultViewport || null,
-      headless: typeof chromium?.headless === "boolean" ? chromium.headless : true,
-    };
+    // safe args/defaults
+    const launchArgs = [...((chromium && chromium.args) ? chromium.args : []), "--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"];
+    const launchOptions = { args: launchArgs, defaultViewport: chromium?.defaultViewport || null, headless: chromium?.headless ?? true };
     if (execPath) launchOptions.executablePath = execPath;
 
     const browser = await puppeteer.launch(launchOptions);
