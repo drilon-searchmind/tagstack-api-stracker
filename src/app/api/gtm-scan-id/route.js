@@ -31,16 +31,29 @@ export async function GET(request) {
     }
 
     // prefer @sparticuz/chromium in production for smaller binary; fallback to chrome-aws-lambda
-    let chromium = await tryDynamicImport("@sparticuz/chromium") || await tryDynamicImport("chrome-aws-lambda");
-    let puppeteer = await tryDynamicImport("puppeteer-core");
+    let chromium = null;
+    let puppeteer = null;
 
-    // local dev: prefer full puppeteer (includes downloaded Chromium)
-    const isLocalDev = process.env.NODE_ENV !== "production" && !process.env.VERCEL;
-    if (isLocalDev) {
-      const full = await tryDynamicImport("puppeteer");
-      if (full) {
-        puppeteer = full;
-        chromium = null; // use local Chromium from full puppeteer
+    // On Vercel, prioritize @sparticuz/chromium
+    if (process.env.VERCEL) {
+      try {
+        chromium = await tryDynamicImport("@sparticuz/chromium");
+        puppeteer = await tryDynamicImport("puppeteer-core");
+      } catch (e) {
+        console.error("Failed to import @sparticuz/chromium:", e);
+      }
+    } else {
+      // Local development flow remains the same
+      chromium = await tryDynamicImport("@sparticuz/chromium") || await tryDynamicImport("chrome-aws-lambda");
+      puppeteer = await tryDynamicImport("puppeteer-core");
+      
+      const isLocalDev = process.env.NODE_ENV !== "production" && !process.env.VERCEL;
+      if (isLocalDev) {
+        const full = await tryDynamicImport("puppeteer");
+        if (full) {
+          puppeteer = full;
+          chromium = null; // use local Chromium from full puppeteer
+        }
       }
     }
 
@@ -50,14 +63,32 @@ export async function GET(request) {
 
     // get execPath (handle function or string)
     let execPath;
-    if (chromium && typeof chromium.executablePath === "function") execPath = await chromium.executablePath();
-    else if (chromium && chromium.executablePath) execPath = chromium.executablePath;
-    else execPath = process.env.CHROME_PATH || undefined;
+    if (process.env.VERCEL && chromium) {
+      // On Vercel, ensure we're using the correct executablePath approach for @sparticuz/chromium
+      execPath = await chromium.executablePath();
+    } else if (chromium && typeof chromium.executablePath === "function") {
+      execPath = await chromium.executablePath();
+    } else if (chromium && chromium.executablePath) {
+      execPath = chromium.executablePath;
+    } else {
+      execPath = process.env.CHROME_PATH || undefined;
+    }
     if (execPath && typeof execPath.then === "function") execPath = await execPath;
 
-    // safe args/defaults
-    const launchArgs = [...((chromium && chromium.args) ? chromium.args : []), "--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"];
-    const launchOptions = { args: launchArgs, defaultViewport: chromium?.defaultViewport || null, headless: chromium?.headless ?? true };
+    // safe args/defaults - add special flags for Vercel environment
+    const launchArgs = [
+      ...((chromium && chromium.args) ? chromium.args : []),
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      ...(process.env.VERCEL ? ["--disable-gpu", "--single-process"] : [])
+    ];
+
+    const launchOptions = { 
+      args: launchArgs,
+      defaultViewport: chromium?.defaultViewport || null,
+      headless: true // Always use headless on Vercel
+    };
     if (execPath) launchOptions.executablePath = execPath;
 
     const browser = await puppeteer.launch(launchOptions);
