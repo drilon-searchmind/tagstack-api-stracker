@@ -7,6 +7,7 @@ export default function CustomScanGTM() {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null);
+    const [gtmContainers, setGtmContainers] = useState([]);
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -15,10 +16,17 @@ export default function CustomScanGTM() {
         setResult(null);
 
         try {
-            const resp = await fetch(`/api/gtm-scan?url=${encodeURIComponent(url)}`, { method: 'GET' });
+            const resp = await fetch(`/api/gtm-scan-id?url=${encodeURIComponent(url)}`, { method: 'GET' });
             const json = await resp.json();
+
+            console.log({json})
             if (!resp.ok) throw new Error(json.error || JSON.stringify(json));
+            
             setResult(json);
+            const containers = Array.isArray(json.containers)
+                ? json.containers.filter(c => c && typeof c.id === 'string' && /^GTM-[A-Z0-9]+$/.test(c.id))
+                : [];
+            setGtmContainers(containers);
         } catch (err) {
             setError(String(err));
         } finally {
@@ -48,7 +56,7 @@ export default function CustomScanGTM() {
                 <div>
                     <h4>Scan result</h4>
                     <pre style={{ maxHeight: '60vh', overflow: 'auto', background: '#f7f7f7', padding: 10 }}>
-                        {JSON.stringify(result, null, 2)}
+                        {JSON.stringify(gtmContainers, null, 2)}
                     </pre>
                 </div>
             )}

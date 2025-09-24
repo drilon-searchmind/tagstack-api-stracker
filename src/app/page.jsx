@@ -9,7 +9,6 @@ export default function Home() {
 				Enter a URL below to analyze it using the TagStack API
 			</p>
 			<ScanUrlForm />
-			<CustomScanGTM />
 		</main>
 	);
 }
