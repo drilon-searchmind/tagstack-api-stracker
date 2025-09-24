@@ -69,7 +69,7 @@ export default function ScanUrlForm() {
     };
 
     return (
-        <div className="w-full max-w-3xl">
+        <div className="w-full max-w-7xl">
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex gap-2">
                     <Input
