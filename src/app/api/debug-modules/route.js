@@ -1,18 +1,17 @@
 // filepath: c:\Users\Searchmind\Documents\DEV\INTERN\TAGSTACK_API_TRACKER\tagstack-api-stracker\src\app\api\debug-modules\route.js
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
+export const runtime = "nodejs"; // Explicitly set nodejs runtime
 
 // Helper to safely try importing a module
 async function tryImport(moduleName) {
   const results = {
     dynamicImport: { success: false, error: null },
-    require: { success: false, error: null },
     version: null
   };
   
   try {
-    const mod = await new Function(`return import('${moduleName}')`)();
+    const mod = await import(moduleName);
     results.dynamicImport.success = true;
     if (mod && (mod.default || mod)) {
       const resolved = mod.default || mod;
@@ -22,16 +21,6 @@ async function tryImport(moduleName) {
     }
   } catch (err) {
     results.dynamicImport.error = err.message;
-  }
-  
-  try {
-    const req = new Function(`return require('${moduleName}')`)();
-    results.require.success = true;
-    if (typeof req.version === 'function' && !results.version) {
-      results.version = req.version();
-    }
-  } catch (err) {
-    results.require.error = err.message;
   }
   
   return results;

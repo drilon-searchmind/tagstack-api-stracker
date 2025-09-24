@@ -1,27 +1,12 @@
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
+export const runtime = "nodejs"; // Explicitly set nodejs runtime
 
 async function tryDynamicImport(spec) {
   try {
-    // Try direct import first
-    const mod = await new Function(`return import('${spec}')`)();
-    if (mod && (mod.default || mod)) {
-      return mod && (mod.default || mod);
-    }
-    
-    // If direct import fails on Vercel, try require
-    if (process.env.VERCEL) {
-      try {
-        // Use require as fallback on Vercel
-        const req = new Function(`return require('${spec}')`)();
-        return req;
-      } catch (reqErr) {
-        console.error(`Require fallback failed for ${spec}:`, reqErr);
-        return null;
-      }
-    }
-    return null;
+    // Use standard dynamic import
+    const mod = await import(spec);
+    return mod.default || mod;
   } catch (e) {
     console.error(`Import failed for ${spec}:`, e);
     return null;
