@@ -1,0 +1,57 @@
+"use client"
+
+import React, { useState } from 'react';
+
+export default function CustomScanGTM() {
+    const [url, setUrl] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [result, setResult] = useState(null);
+    const [error, setError] = useState(null);
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        setResult(null);
+
+        try {
+            const resp = await fetch(`/api/gtm-scan?url=${encodeURIComponent(url)}`, { method: 'GET' });
+            const json = await resp.json();
+            if (!resp.ok) throw new Error(json.error || JSON.stringify(json));
+            setResult(json);
+        } catch (err) {
+            setError(String(err));
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return (
+        <div>
+            <h3>Custom GTM Scanner</h3>
+            <form onSubmit={handleSubmit}>
+                <input
+                    type="url"
+                    placeholder="https://example.com"
+                    value={url}
+                    onChange={e => setUrl(e.target.value)}
+                    required
+                    style={{ width: '60%' }}
+                />
+                <button type="submit" disabled={loading}>Scan</button>
+            </form>
+
+            {loading && <p>Scanning… (this may take a few seconds)</p>}
+            {error && <pre style={{ color: 'red' }}>{error}</pre>}
+
+            {result && (
+                <div>
+                    <h4>Scan result</h4>
+                    <pre style={{ maxHeight: '60vh', overflow: 'auto', background: '#f7f7f7', padding: 10 }}>
+                        {JSON.stringify(result, null, 2)}
+                    </pre>
+                </div>
+            )}
+        </div>
+    );
+}

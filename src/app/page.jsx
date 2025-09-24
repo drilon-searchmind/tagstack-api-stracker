@@ -1,3 +1,4 @@
+import CustomScanGTM from "@/components/forms/CustomScanGTM";
 import ScanUrlForm from "@/components/forms/ScanUrlForm";
 
 export default function Home() {
@@ -8,6 +9,7 @@ export default function Home() {
 				Enter a URL below to analyze it using the TagStack API
 			</p>
 			<ScanUrlForm />
+			<CustomScanGTM />
 		</main>
 	);
 }
