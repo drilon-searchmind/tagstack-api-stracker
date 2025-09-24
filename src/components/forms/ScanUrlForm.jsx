@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import GtmAnalysis from "@/components/analysis/GtmAnalysis";
 
 export default function ScanUrlForm() {
     const [url, setUrl] = useState("");
@@ -23,16 +24,19 @@ export default function ScanUrlForm() {
         setGtmContainers([]);
 
         try {
+            // 1) fetch container IDs
             const respGtm = await fetch(`/api/gtm-scan-id?url=${encodeURIComponent(url)}`);
             const gtmJson = await respGtm.json();
             if (!respGtm.ok) throw new Error(gtmJson.message || gtmJson.error || JSON.stringify(gtmJson));
 
+            // keep only valid GTM container ids (case-sensitive)
             const containers = Array.isArray(gtmJson.containers)
                 ? gtmJson.containers.filter(c => c && typeof c.id === 'string' && /^GTM-[A-Z0-9]+$/.test(c.id))
                 : [];
 
             setGtmContainers(containers);
 
+            // 2) run TagStack scan for each container id (use existing /api/scan?url= endpoint)
             const scans = await Promise.allSettled(
                 containers.map(ct => fetch(`/api/scan?url=${encodeURIComponent(ct.id)}`))
             );
@@ -106,12 +110,15 @@ export default function ScanUrlForm() {
                     <CardContent className="pt-6">
                         <h3 className="text-lg font-medium mb-4">Scan Results</h3>
 
-                        <h4 className="font-medium">Detected GTM Containers</h4>
+                        <h4 className="font-medium">GTM analysis</h4>
+                        <GtmAnalysis scanResults={scanResults} />
+
+                        <h4 className="font-medium mt-4">Detected GTM Containers (raw)</h4>
                         <pre className="bg-slate-100 p-4 rounded-md overflow-auto max-h-[160px] text-sm">
                             {JSON.stringify(gtmContainers, null, 2)}
                         </pre>
 
-                        <h4 className="font-medium mt-4">Per-container TagStack Scan Results</h4>
+                        <h4 className="font-medium mt-4">Per-container TagStack Scan Results (raw)</h4>
                         <pre className="bg-slate-100 p-4 rounded-md overflow-auto max-h-[500px] text-sm">
                             {JSON.stringify(scanResults.containerScans, null, 2)}
                         </pre>
