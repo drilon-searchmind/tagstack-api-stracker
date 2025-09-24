@@ -108,7 +108,7 @@ export default function ScanUrlForm() {
             {scanResults && (
                 <Card className="mt-6">
                     <CardContent className="pt-6">
-                        <h3 className="text-lg font-medium mb-4">Scan Results</h3>
+                        <h3 className="text-xl font-bold mb-4">Scan Results</h3>
 
                         <h4 className="font-medium">GTM analysis</h4>
                         <GtmAnalysis scanResults={scanResults} />

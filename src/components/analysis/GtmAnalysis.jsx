@@ -89,7 +89,7 @@ export default function GtmAnalysis({ scanResults }) {
                                         <div className="text-xs text-gray-400 truncate mt-1">{payload?.url ?? tagData?.url ?? ""}</div>
                                     </div>
 
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 glass-morph p-5 min-w-[400px] max-w-[400px] overflow-hidden">
                                         <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${ok ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800"}`}>
                                             {ok ? "OK" : `Err ${status ?? ""}`}
                                         </div>
