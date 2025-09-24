@@ -1,8 +1,13 @@
+/* https://gradientscss.vercel.app/ */
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
 :root {
   --max-width-desktop: 80rem;
+  --gtm-gradient-start: #00467F;
+  --gtm-gradient-end: #A5CC82;
+  --gtm-gradient: linear-gradient(90deg, #00467F 0%, #A5CC82 100%)
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -123,4 +128,11 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.bg-gtm-gradient {
+  background-image: var(--gtm-gradient);
+}
+.bg-gtm-gradient-start {
+  background-color: var(--gtm-gradient-start);
 }

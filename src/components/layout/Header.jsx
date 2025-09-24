@@ -13,7 +13,7 @@ export default function Header() {
                         <Link href="/">Home</Link>
                     </Button>
                     <Button asChild variant="ghost">
-                        <Link href="/scan">Scan URL</Link>
+                        <Link href="/scan" className="">Scan URL</Link>
                     </Button>
                 </nav>
             </div>

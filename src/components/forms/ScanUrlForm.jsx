@@ -84,7 +84,7 @@ export default function ScanUrlForm() {
                         disabled={isLoading}
                         className="flex-1"
                     />
-                    <Button type="submit" disabled={isLoading || !url}>
+                    <Button className="bg-gtm-gradient-start" type="submit" disabled={isLoading || !url}>
                         {isLoading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
