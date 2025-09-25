@@ -137,127 +137,141 @@ export default function GtmAnalysis({ scanResults }) {
                                             </div>
                                         </div>
 
-                                        {/* Tables */}
+                                        {/* Tables as Accordions */}
                                         <div className="space-y-4">
-                                            <div>
-                                                <h5 className="text-sm font-medium mb-2">Tags ({countSafe(tags)})</h5>
-                                                <div className="overflow-auto rounded border">
-                                                    <table className="min-w-full text-sm">
-                                                        <thead className="bg-slate-100">
-                                                            <tr>
-                                                                <th className="px-3 py-2 text-left">#</th>
-                                                                <th className="px-3 py-2 text-left">Name / Type</th>
-                                                                <th className="px-3 py-2 text-left">Details</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {Array.isArray(tags) && tags.length ? (
-                                                                tags.map((t, i) => {
-                                                                    const name = t?.name || t?.tag || t?.type || String(t);
-                                                                    const type = t?.type || (t?.function ? "function" : "unknown");
-                                                                    const details = t?.parameters ? JSON.stringify(t.parameters).slice(0, 300) : t?.vtp_html ? "<html/>" : JSON.stringify(t).slice(0, 300);
-                                                                    return (
-                                                                        <tr key={i} className="odd:bg-white even:bg-slate-50">
-                                                                            <td className="px-3 py-2 align-top">{i + 1}</td>
-                                                                            <td className="px-3 py-2 align-top">
-                                                                                <div className="font-medium">{name}</div>
-                                                                                <div className="text-xs text-gray-500">{type}</div>
-                                                                            </td>
-                                                                            <td className="px-3 py-2 align-top">
-                                                                                <div className="text-xs text-gray-700 whitespace-pre-wrap">{details}</div>
-                                                                            </td>
+                                            <Accordion type="single" collapsible>
+                                                <AccordionItem value="tags">
+                                                    <AccordionTrigger className="text-sm font-medium">
+                                                        Tags ({countSafe(tags)})
+                                                    </AccordionTrigger>
+                                                    <AccordionContent>
+                                                        <div className="overflow-auto rounded border">
+                                                            <table className="min-w-full text-sm">
+                                                                <thead className="bg-slate-100">
+                                                                    <tr>
+                                                                        <th className="px-3 py-2 text-left">#</th>
+                                                                        <th className="px-3 py-2 text-left">Name / Type</th>
+                                                                        <th className="px-3 py-2 text-left">Details</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {Array.isArray(tags) && tags.length ? (
+                                                                        tags.map((t, i) => {
+                                                                            const name = t?.name || t?.tag || t?.type || String(t);
+                                                                            const type = t?.type || (t?.function ? "function" : "unknown");
+                                                                            const details = t?.parameters ? JSON.stringify(t.parameters).slice(0, 300) : t?.vtp_html ? "<html/>" : JSON.stringify(t).slice(0, 300);
+                                                                            return (
+                                                                                <tr key={i} className="odd:bg-white even:bg-slate-50">
+                                                                                    <td className="px-3 py-2 align-top">{i + 1}</td>
+                                                                                    <td className="px-3 py-2 align-top">
+                                                                                        <div className="font-medium">{name}</div>
+                                                                                        <div className="text-xs text-gray-500">{type}</div>
+                                                                                    </td>
+                                                                                    <td className="px-3 py-2 align-top">
+                                                                                        <div className="text-xs text-gray-700 whitespace-pre-wrap">{details}</div>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            );
+                                                                        })
+                                                                    ) : (
+                                                                        <tr>
+                                                                            <td colSpan={3} className="px-3 py-4 text-xs text-gray-500">No tags detected</td>
                                                                         </tr>
-                                                                    );
-                                                                })
-                                                            ) : (
-                                                                <tr>
-                                                                    <td colSpan={3} className="px-3 py-4 text-xs text-gray-500">No tags detected</td>
-                                                                </tr>
-                                                            )}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
+                                                                    )}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </AccordionContent>
+                                                </AccordionItem>
 
-                                            <div>
-                                                <h5 className="text-sm font-medium mb-2">Variables ({countSafe(variables)})</h5>
-                                                <div className="overflow-auto rounded border">
-                                                    <table className="min-w-full text-sm">
-                                                        <thead className="bg-slate-100">
-                                                            <tr>
-                                                                <th className="px-3 py-2 text-left">#</th>
-                                                                <th className="px-3 py-2 text-left">Name / Type</th>
-                                                                <th className="px-3 py-2 text-left">Details</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {Array.isArray(variables) && variables.length ? (
-                                                                variables.map((v, i) => {
-                                                                    const name = v?.name || v?.vtp_name || v?.variableName || `var-${i + 1}`;
-                                                                    const type = v?.type || v?.vtp_javascript ? "js" : v?.type || "unknown";
-                                                                    const details = v?.parameters ? JSON.stringify(v.parameters).slice(0, 300) : JSON.stringify(v).slice(0, 300);
-                                                                    return (
-                                                                        <tr key={i} className="odd:bg-white even:bg-slate-50">
-                                                                            <td className="px-3 py-2 align-top">{i + 1}</td>
-                                                                            <td className="px-3 py-2 align-top">
-                                                                                <div className="font-medium">{name}</div>
-                                                                                <div className="text-xs text-gray-500">{type}</div>
-                                                                            </td>
-                                                                            <td className="px-3 py-2 align-top">
-                                                                                <div className="text-xs text-gray-700 whitespace-pre-wrap">{details}</div>
-                                                                            </td>
+                                                <AccordionItem value="variables">
+                                                    <AccordionTrigger className="text-sm font-medium">
+                                                        Variables ({countSafe(variables)})
+                                                    </AccordionTrigger>
+                                                    <AccordionContent>
+                                                        <div className="overflow-auto rounded border">
+                                                            <table className="min-w-full text-sm">
+                                                                <thead className="bg-slate-100">
+                                                                    <tr>
+                                                                        <th className="px-3 py-2 text-left">#</th>
+                                                                        <th className="px-3 py-2 text-left">Name / Type</th>
+                                                                        <th className="px-3 py-2 text-left">Details</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {Array.isArray(variables) && variables.length ? (
+                                                                        variables.map((v, i) => {
+                                                                            const name = v?.name || v?.vtp_name || v?.variableName || `var-${i + 1}`;
+                                                                            const type = v?.type || v?.vtp_javascript ? "js" : v?.type || "unknown";
+                                                                            const details = v?.parameters ? JSON.stringify(v.parameters).slice(0, 300) : JSON.stringify(v).slice(0, 300);
+                                                                            return (
+                                                                                <tr key={i} className="odd:bg-white even:bg-slate-50">
+                                                                                    <td className="px-3 py-2 align-top">{i + 1}</td>
+                                                                                    <td className="px-3 py-2 align-top">
+                                                                                        <div className="font-medium">{name}</div>
+                                                                                        <div className="text-xs text-gray-500">{type}</div>
+                                                                                    </td>
+                                                                                    <td className="px-3 py-2 align-top">
+                                                                                        <div className="text-xs text-gray-700 whitespace-pre-wrap">{details}</div>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            );
+                                                                        })
+                                                                    ) : (
+                                                                        <tr>
+                                                                            <td colSpan={3} className="px-3 py-4 text-xs text-gray-500">No variables detected</td>
                                                                         </tr>
-                                                                    );
-                                                                })
-                                                            ) : (
-                                                                <tr>
-                                                                    <td colSpan={3} className="px-3 py-4 text-xs text-gray-500">No variables detected</td>
-                                                                </tr>
-                                                            )}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
+                                                                    )}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </AccordionContent>
+                                                </AccordionItem>
 
-                                            <div>
-                                                <h5 className="text-sm font-medium mb-2">Triggers ({countSafe(triggers)})</h5>
-                                                <div className="overflow-auto rounded border">
-                                                    <table className="min-w-full text-sm">
-                                                        <thead className="bg-slate-100">
-                                                            <tr>
-                                                                <th className="px-3 py-2 text-left">#</th>
-                                                                <th className="px-3 py-2 text-left">Type / Name</th>
-                                                                <th className="px-3 py-2 text-left">Details</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {Array.isArray(triggers) && triggers.length ? (
-                                                                triggers.map((tr, i) => {
-                                                                    const name = tr?.name || tr?.type || `trigger-${i + 1}`;
-                                                                    const type = tr?.type || "unknown";
-                                                                    const details = tr?.parameters ? JSON.stringify(tr.parameters).slice(0, 300) : JSON.stringify(tr).slice(0, 300);
-                                                                    return (
-                                                                        <tr key={i} className="odd:bg-white even:bg-slate-50">
-                                                                            <td className="px-3 py-2 align-top">{i + 1}</td>
-                                                                            <td className="px-3 py-2 align-top">
-                                                                                <div className="font-medium">{name}</div>
-                                                                                <div className="text-xs text-gray-500">{type}</div>
-                                                                            </td>
-                                                                            <td className="px-3 py-2 align-top">
-                                                                                <div className="text-xs text-gray-700 whitespace-pre-wrap">{details}</div>
-                                                                            </td>
+                                                <AccordionItem value="triggers">
+                                                    <AccordionTrigger className="text-sm font-medium">
+                                                        Triggers ({countSafe(triggers)})
+                                                    </AccordionTrigger>
+                                                    <AccordionContent>
+                                                        <div className="overflow-auto rounded border">
+                                                            <table className="min-w-full text-sm">
+                                                                <thead className="bg-slate-100">
+                                                                    <tr>
+                                                                        <th className="px-3 py-2 text-left">#</th>
+                                                                        <th className="px-3 py-2 text-left">Type / Name</th>
+                                                                        <th className="px-3 py-2 text-left">Details</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {Array.isArray(triggers) && triggers.length ? (
+                                                                        triggers.map((tr, i) => {
+                                                                            const name = tr?.name || tr?.type || `trigger-${i + 1}`;
+                                                                            const type = tr?.type || "unknown";
+                                                                            const details = tr?.parameters ? JSON.stringify(tr.parameters).slice(0, 300) : JSON.stringify(tr).slice(0, 300);
+                                                                            return (
+                                                                                <tr key={i} className="odd:bg-white even:bg-slate-50">
+                                                                                    <td className="px-3 py-2 align-top">{i + 1}</td>
+                                                                                    <td className="px-3 py-2 align-top">
+                                                                                        <div className="font-medium">{name}</div>
+                                                                                        <div className="text-xs text-gray-500">{type}</div>
+                                                                                    </td>
+                                                                                    <td className="px-3 py-2 align-top">
+                                                                                        <div className="text-xs text-gray-700 whitespace-pre-wrap">{details}</div>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            );
+                                                                        })
+                                                                    ) : (
+                                                                        <tr>
+                                                                            <td colSpan={3} className="px-3 py-4 text-xs text-gray-500">No triggers detected</td>
                                                                         </tr>
-                                                                    );
-                                                                })
-                                                            ) : (
-                                                                <tr>
-                                                                    <td colSpan={3} className="px-3 py-4 text-xs text-gray-500">No triggers detected</td>
-                                                                </tr>
-                                                            )}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
+                                                                    )}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            </Accordion>
                                         </div>
 
                                         {/* Martech */}
