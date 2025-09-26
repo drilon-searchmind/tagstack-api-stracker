@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
+import Image from "next/image";
+
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,9 +19,19 @@ export default function Header() {
             <div className=" mx-auto px-4 py-3">
                 <div className="flex justify-between items-center">
                     {/* Logo */}
-                    <Link href="/" className="font-bold text-xl text-gray-900 hover:text-gray-700 transition-colors">
-                        TagStack Scanner
-                    </Link>
+                    <>
+
+                        <Link href="/" className="font-bold text-xl text-gray-900 hover:text-gray-700 transition-colors flex items-center">
+                            <Image
+                                src="/images/logo/tagstackLogo2NoBG.png"
+                                alt="TagStack Logo"
+                                width={40}
+                                height={40}
+                                className="mr-1"
+                            />
+                            TagStack Scanner
+                        </Link>
+                    </>
 
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex space-x-4">
@@ -48,17 +60,17 @@ export default function Header() {
                 {/* Mobile Navigation */}
                 {isMenuOpen && (
                     <nav className="md:hidden mt-4 pt-4 border-t border-gray-200 space-y-2">
-                        <Button 
-                            asChild 
-                            variant="ghost" 
+                        <Button
+                            asChild
+                            variant="ghost"
                             className="w-full justify-start"
                             onClick={() => setIsMenuOpen(false)}
                         >
                             <Link href="/">Home</Link>
                         </Button>
-                        <Button 
-                            asChild 
-                            variant="ghost" 
+                        <Button
+                            asChild
+                            variant="ghost"
                             className="w-full justify-start"
                             onClick={() => setIsMenuOpen(false)}
                         >
