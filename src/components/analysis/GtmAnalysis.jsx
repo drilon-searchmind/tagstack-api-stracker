@@ -8,6 +8,8 @@ import {
     AccordionTrigger,
     AccordionContent,
 } from "@/components/ui/accordion";
+import FullAnalysisModal from "@/components/analysis/FullAnalysisModal";
+import { FaChartLine, FaFileAlt } from "react-icons/fa";
 
 /**
  * GtmAnalysis
@@ -17,7 +19,15 @@ import {
  * Uses shadcn accordion: summary in the trigger, details inside content (closed by default).
  */
 export default function GtmAnalysis({ scanResults }) {
+    const [selectedAnalysis, setSelectedAnalysis] = React.useState(null);
+
     if (!scanResults || !Array.isArray(scanResults.containerScans)) return null;
+
+    const openModal = (id) => {
+        const analysis = scanResults.containerScans.find((c) => c.id === id);
+        setSelectedAnalysis(analysis);
+    };
+    const closeModal = () => setSelectedAnalysis(null);
 
     const safeParseMessage = (msg) => {
         if (!msg) return null;
@@ -86,7 +96,7 @@ export default function GtmAnalysis({ scanResults }) {
                                     <div className="flex-1 min-w-0">
                                         <div className="text-sm text-gray-200">Container</div>
                                         <div className="text-lg font-semibold truncate">{id}</div>
-                                        <div className="text-xs text-gray-400 truncate mt-1">{payload?.url ?? tagData?.url ?? ""}</div>
+                                        <div className="text-xs text-gray-100 truncate mt-1">{payload?.url ?? tagData?.url ?? ""}</div>
                                     </div>
 
                                     <div className="flex items-center gap-3 glass-morph p-5 min-w-[400px] max-w-[400px] overflow-hidden">
@@ -112,6 +122,7 @@ export default function GtmAnalysis({ scanResults }) {
                             <AccordionContent>
                                 <Card className="border">
                                     <CardContent>
+
                                         {/* Summary row (mobile-friendly) */}
                                         <div className="flex items-center justify-between gap-4 mb-4 md:hidden">
                                             <div className="text-xs text-gray-500">{isServerSide ? "Server-side container" : "Client-side container"}</div>
@@ -135,6 +146,14 @@ export default function GtmAnalysis({ scanResults }) {
                                                 <div className="text-xs text-gray-500">CMP / Consent details</div>
                                                 <div className="mt-1 text-sm">{cmpName || (hasConsentMode ? "Consent-mode detected" : "—")}</div>
                                             </div>
+
+                                            <button
+                                                className="bg-gtm-gradient-end cursor-pointer text-black underline px-4 py-2 rounded-md hover:bg-blue-600 flex items-center gap-2 justify-center "
+                                                onClick={() => openModal(id)}
+                                            >
+                                                <FaFileAlt className="w-4 h-4" />
+                                                View Full Analysis
+                                            </button>
                                         </div>
 
                                         {/* Tables as Accordions */}
@@ -289,6 +308,7 @@ export default function GtmAnalysis({ scanResults }) {
                                                 <div className="text-xs text-gray-500">No technologies detected</div>
                                             )}
                                         </div>
+
                                     </CardContent>
                                 </Card>
                             </AccordionContent>
@@ -296,6 +316,12 @@ export default function GtmAnalysis({ scanResults }) {
                     );
                 })}
             </Accordion>
+
+            <FullAnalysisModal
+                isOpen={!!selectedAnalysis}
+                onClose={closeModal}
+                analysisData={selectedAnalysis?.body}
+            />
         </div>
     );
 }

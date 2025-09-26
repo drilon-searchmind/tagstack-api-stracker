@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import GtmAnalysis from "@/components/analysis/GtmAnalysis";
+import { FaSearch } from "react-icons/fa";
 
 export default function ScanUrlForm() {
     const [url, setUrl] = useState("");
@@ -73,57 +74,74 @@ export default function ScanUrlForm() {
     };
 
     return (
-        <div className="w-full max-w-7xl">
+        <div className="w-full">
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                     <Input
                         type="text"
                         placeholder="Enter URL (e.g. example.com)"
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                         disabled={isLoading}
-                        className="flex-1"
+                        className="flex-1 h-14 text-lg px-6 bg-white/90 backdrop-blur border-white/30 focus:bg-white focus:border-white shadow-lg"
                     />
-                    <Button className="bg-gtm-gradient-start" type="submit" disabled={isLoading || !url}>
+                    <Button 
+                        className="bg-white text-gray-900 hover:bg-gray-100 h-14 px-8 text-lg font-semibold shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105" 
+                        type="submit" 
+                        disabled={isLoading || !url}
+                    >
                         {isLoading ? (
                             <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                                 Scanning...
                             </>
                         ) : (
-                            "Scan URL"
+                            <>
+                                <FaSearch className="mr-2 h-5 w-5" />
+                                Scan URL
+                            </>
                         )}
                     </Button>
                 </div>
             </form>
 
             {error && (
-                <Card className="mt-6 border-red-300">
-                    <CardContent className="pt-6 text-red-500">
+                <div className="mt-6 glass-morph border border-red-300/50">
+                    <div className="p-6 text-red-100 bg-red-500/20 rounded-lg">
                         {error}
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             )}
 
             {scanResults && (
-                <Card className="mt-6">
-                    <CardContent className="pt-6">
-                        <h3 className="text-xl font-bold mb-4">Scan Results</h3>
+                <div className="mt-12 bg-white rounded-2xl shadow-2xl overflow-hidden text-left">
+                    <div className="p-8">
+                        <h3 className="text-2xl font-bold mb-6 text-gray-900">Scan Results</h3>
+                        
+                        <div className="mb-8">
+                            <h4 className="font-semibold text-lg mb-4 text-gray-800">GTM Analysis</h4>
+                            <GtmAnalysis scanResults={scanResults} />
+                        </div>
 
-                        <h4 className="font-medium">GTM analysis</h4>
-                        <GtmAnalysis scanResults={scanResults} />
+                        <details className="mb-6">
+                            <summary className="font-semibold text-lg mb-2 cursor-pointer text-gray-800 hover:text-gray-600">
+                                Detected GTM Containers
+                            </summary>
+                            <pre className="bg-gray-100 p-4 rounded-lg overflow-auto max-h-40 text-sm mt-2">
+                                {JSON.stringify(gtmContainers, null, 2)}
+                            </pre>
+                        </details>
 
-                        <h4 className="font-medium mt-4">Detected GTM Containers (raw)</h4>
-                        <pre className="bg-slate-100 p-4 rounded-md overflow-auto max-h-[160px] text-sm">
-                            {JSON.stringify(gtmContainers, null, 2)}
-                        </pre>
-
-                        <h4 className="font-medium mt-4">Per-container TagStack Scan Results (raw)</h4>
-                        <pre className="bg-slate-100 p-4 rounded-md overflow-auto max-h-[500px] text-sm">
-                            {JSON.stringify(scanResults.containerScans, null, 2)}
-                        </pre>
-                    </CardContent>
-                </Card>
+                        <details>
+                            <summary className="font-semibold text-lg mb-2 cursor-pointer text-gray-800 hover:text-gray-600">
+                                Raw Scan Results
+                            </summary>
+                            <pre className="bg-gray-100 p-4 rounded-lg overflow-auto max-h-96 text-sm mt-2">
+                                {JSON.stringify(scanResults.containerScans, null, 2)}
+                            </pre>
+                        </details>
+                    </div>
+                </div>
             )}
         </div>
     );

@@ -1,25 +1,28 @@
-import { Inter } from "next/font/google";
+import { Fustat } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 
-const inter = Inter({ subsets: ["latin"] });
-
 export const metadata = {
-	title: "TagStack URL Scanner",
-	description: "Scan URLs using TagStack API",
+    title: "Searchmind TagStack URL Scanner",
+    description: "Scan URLs using TagStack API",
 };
 
+const fustat = Fustat({
+    weight: ['200', '300', '400', '500', '600', '700', '800'],
+    subsets: ['latin'],
+    display: 'swap',
+    variable: '--font-fustat',
+});
+
 export default function RootLayout({ children }) {
-	return (
-		<html lang="en">
-			<body className={inter.className}>
-				<div className="min-h-screen flex flex-col">
-					<Header />
-					<main className="flex-1 py-20">
-						{children}
-					</main>
-				</div>
-			</body>
-		</html>
-	);
+    return (
+        <html lang="en">
+            <body className={`${fustat.variable} antialiased`}>
+                <Header />
+                <main className="relative">
+                    {children}
+                </main>
+            </body>
+        </html>
+    );
 }
