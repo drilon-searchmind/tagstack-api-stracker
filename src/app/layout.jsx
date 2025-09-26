@@ -3,7 +3,7 @@ import "./globals.css";
 import Header from "@/components/layout/Header";
 
 export const metadata = {
-    title: "Searchmind TagStack URL Scanner",
+    title: "Searchmind Omnipixel URL Scanner",
     description: "Scan URLs using TagStack API",
 };
 

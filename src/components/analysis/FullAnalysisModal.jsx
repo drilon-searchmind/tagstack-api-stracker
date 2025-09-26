@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { FaGoogle, FaTimes, FaFacebook, FaChartBar, FaCog } from "react-icons/fa";
+import { FaGoogle, FaTimes, FaFacebook, FaChartBar, FaCog, FaLinkedin, FaPinterest, FaMicrosoft } from "react-icons/fa";
+import { SiKlaviyo } from "react-icons/si";
+import { MdEmail } from "react-icons/md";
 
 export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
     const [activeTab, setActiveTab] = useState('ga4');
@@ -113,6 +115,120 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
         return events;
     };
 
+    // New LinkedIn extraction function
+    const extractLinkedInEvents = (messageData) => {
+        if (!messageData) return [];
+
+        const events = [];
+
+        Object.keys(messageData).forEach(key => {
+            const containerData = messageData[key];
+
+            if (containerData?.entityType === 'GTM Container' && containerData.tags) {
+                containerData.tags.forEach(tag => {
+                    if (tag.type === 'linkedin_insight' || tag.name?.toLowerCase().includes('linkedin') ||
+                        tag.name?.toLowerCase().includes('li_') || tag.name?.toLowerCase().includes('insight')) {
+
+                        events.push({
+                            name: tag.name || 'LinkedIn Insight Tag',
+                            type: 'LinkedIn Event',
+                            details: tag,
+                            triggers: tag.triggers || []
+                        });
+                    }
+                });
+            }
+        });
+
+        return events;
+    };
+
+    // New Klaviyo extraction function
+    const extractKlaviyoEvents = (messageData) => {
+        if (!messageData) return [];
+
+        const events = [];
+
+        Object.keys(messageData).forEach(key => {
+            const containerData = messageData[key];
+
+            if (containerData?.entityType === 'GTM Container' && containerData.tags) {
+                containerData.tags.forEach(tag => {
+                    if (tag.type === 'klaviyo' || tag.name?.toLowerCase().includes('klaviyo') ||
+                        tag.name?.toLowerCase().includes('kl_')) {
+
+                        events.push({
+                            name: tag.name || 'Klaviyo Event',
+                            type: 'Klaviyo Event',
+                            details: tag,
+                            triggers: tag.triggers || []
+                        });
+                    }
+                });
+            }
+        });
+
+        return events;
+    };
+
+    // New Pinterest extraction function
+    const extractPinterestEvents = (messageData) => {
+        if (!messageData) return [];
+
+        const events = [];
+
+        Object.keys(messageData).forEach(key => {
+            const containerData = messageData[key];
+
+            if (containerData?.entityType === 'GTM Container' && containerData.tags) {
+                containerData.tags.forEach(tag => {
+                    if (tag.type === 'pinterest_tag' || tag.name?.toLowerCase().includes('pinterest') ||
+                        tag.name?.toLowerCase().includes('pin_')) {
+
+                        events.push({
+                            name: tag.name || 'Pinterest Tag',
+                            type: 'Pinterest Event',
+                            details: tag,
+                            triggers: tag.triggers || []
+                        });
+                    }
+                });
+            }
+        });
+
+        return events;
+    };
+
+    // New Microsoft extraction function
+    const extractMicrosoftEvents = (messageData) => {
+        if (!messageData) return [];
+
+        const events = [];
+
+        Object.keys(messageData).forEach(key => {
+            const containerData = messageData[key];
+
+            if (containerData?.entityType === 'GTM Container' && containerData.tags) {
+                containerData.tags.forEach(tag => {
+                    if (tag.type === 'bing_ads' || tag.type === 'microsoft_ads' || 
+                        tag.name?.toLowerCase().includes('microsoft') ||
+                        tag.name?.toLowerCase().includes('bing') ||
+                        tag.name?.toLowerCase().includes('msft')) {
+
+                        events.push({
+                            name: tag.name || 'Microsoft Ads Event',
+                            type: 'Microsoft Ads Event',
+                            details: tag,
+                            triggers: tag.triggers || []
+                        });
+                    }
+                });
+            }
+        });
+
+        return events;
+    };
+
     const extractOtherTech = (messageData) => {
         if (!messageData) return [];
 
@@ -123,10 +239,19 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
 
             if (containerData?.entityType === 'GTM Container' && containerData.tags) {
                 containerData.tags.forEach(tag => {
-                    if (tag.type !== 'gaawe' && tag.type !== 'awct' &&
+                    // Exclude all the platforms we now have dedicated tabs for
+                    if (tag.type !== 'gaawe' && tag.type !== 'awct' && 
+                        tag.type !== 'linkedin_insight' && tag.type !== 'klaviyo' && 
+                        tag.type !== 'pinterest_tag' && tag.type !== 'bing_ads' && 
+                        tag.type !== 'microsoft_ads' &&
                         !tag.name?.toLowerCase().includes('facebook') &&
                         !tag.name?.toLowerCase().includes('meta') &&
-                        !tag.name?.toLowerCase().includes('google ads')) {
+                        !tag.name?.toLowerCase().includes('google ads') &&
+                        !tag.name?.toLowerCase().includes('linkedin') &&
+                        !tag.name?.toLowerCase().includes('klaviyo') &&
+                        !tag.name?.toLowerCase().includes('pinterest') &&
+                        !tag.name?.toLowerCase().includes('microsoft') &&
+                        !tag.name?.toLowerCase().includes('bing')) {
 
                         events.push({
                             name: tag.name || `${tag.type} Tag`,
@@ -162,7 +287,15 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
             'hotjar': 'Hotjar',
             'mouseflow': 'Mouseflow',
             'fullstory': 'FullStory',
-            'crazyegg': 'Crazy Egg'
+            'crazyegg': 'Crazy Egg',
+            // New additions
+            'klaviyo': 'Klaviyo',
+            'klaviyo_pixel': 'Klaviyo Pixel',
+            'bing_ads': 'Microsoft Advertising (Bing)',
+            'microsoft_ads': 'Microsoft Advertising',
+            'msft_uet': 'Microsoft UET Tag',
+            'pinterest_conversion': 'Pinterest Conversion',
+            'pinterest_pixel': 'Pinterest Pixel'
         };
 
         return tagTypeMap[tagType] || tagType;
@@ -171,6 +304,10 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
     const ga4Events = extractGA4Events(messageData);
     const metaEvents = extractMetaEvents(messageData);
     const googleAdsEvents = extractGoogleAdsEvents(messageData);
+    const linkedinEvents = extractLinkedInEvents(messageData);
+    const klaviyoEvents = extractKlaviyoEvents(messageData);
+    const pinterestEvents = extractPinterestEvents(messageData);
+    const microsoftEvents = extractMicrosoftEvents(messageData);
     const otherTech = extractOtherTech(messageData);
 
     const ga4Streams = messageData ? Object.keys(messageData)
@@ -208,6 +345,34 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
             icon: FaChartBar,
             count: googleAdsEvents.length,
             color: 'text-green-500'
+        },
+        {
+            id: 'linkedin',
+            label: 'LinkedIn',
+            icon: FaLinkedin,
+            count: linkedinEvents.length,
+            color: 'text-blue-700'
+        },
+        {
+            id: 'klaviyo',
+            label: 'Klaviyo',
+            icon: MdEmail,
+            count: klaviyoEvents.length,
+            color: 'text-orange-500'
+        },
+        {
+            id: 'pinterest',
+            label: 'Pinterest',
+            icon: FaPinterest,
+            count: pinterestEvents.length,
+            color: 'text-red-500'
+        },
+        {
+            id: 'microsoft',
+            label: 'Microsoft',
+            icon: FaMicrosoft,
+            count: microsoftEvents.length,
+            color: 'text-blue-400'
         },
         {
             id: 'other',
@@ -349,6 +514,98 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
                     </div>
                 );
 
+            case 'linkedin':
+                return (
+                    <div className="space-y-6">
+                        {linkedinEvents.length > 0 ? (
+                            <div>
+                                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                    <FaLinkedin className="text-blue-700" />
+                                    LinkedIn Events ({linkedinEvents.length})
+                                </h3>
+                                <div className="grid gap-3">
+                                    {linkedinEvents.map((event, index) => (
+                                        <EventCard key={index} event={event} index={index} />
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-gray-500">
+                                No LinkedIn Insight Tag events detected
+                            </div>
+                        )}
+                    </div>
+                );
+
+            case 'klaviyo':
+                return (
+                    <div className="space-y-6">
+                        {klaviyoEvents.length > 0 ? (
+                            <div>
+                                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                    <MdEmail className="text-orange-500" />
+                                    Klaviyo Events ({klaviyoEvents.length})
+                                </h3>
+                                <div className="grid gap-3">
+                                    {klaviyoEvents.map((event, index) => (
+                                        <EventCard key={index} event={event} index={index} />
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-gray-500">
+                                No Klaviyo events detected
+                            </div>
+                        )}
+                    </div>
+                );
+
+            case 'pinterest':
+                return (
+                    <div className="space-y-6">
+                        {pinterestEvents.length > 0 ? (
+                            <div>
+                                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                    <FaPinterest className="text-red-500" />
+                                    Pinterest Events ({pinterestEvents.length})
+                                </h3>
+                                <div className="grid gap-3">
+                                    {pinterestEvents.map((event, index) => (
+                                        <EventCard key={index} event={event} index={index} />
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-gray-500">
+                                No Pinterest Tag events detected
+                            </div>
+                        )}
+                    </div>
+                );
+
+            case 'microsoft':
+                return (
+                    <div className="space-y-6">
+                        {microsoftEvents.length > 0 ? (
+                            <div>
+                                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                    <FaMicrosoft className="text-blue-400" />
+                                    Microsoft Ads Events ({microsoftEvents.length})
+                                </h3>
+                                <div className="grid gap-3">
+                                    {microsoftEvents.map((event, index) => (
+                                        <EventCard key={index} event={event} index={index} />
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-gray-500">
+                                No Microsoft Advertising events detected
+                            </div>
+                        )}
+                    </div>
+                );
+
             case 'other':
                 return (
                     <div className="space-y-6">
@@ -393,14 +650,14 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
                 </div>
 
                 <div className="border-b bg-gray-50">
-                    <nav className="flex space-x-8 px-6">
+                    <nav className="flex space-x-4 px-6 overflow-x-auto">
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
                             return (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
+                                    className={`flex items-center gap-2 py-4 px-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${activeTab === tab.id
                                             ? 'border-blue-500 text-blue-600'
                                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                         }`}

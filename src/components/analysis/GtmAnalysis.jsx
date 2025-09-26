@@ -1,105 +1,133 @@
 "use client";
 
 import React from "react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-    Accordion,
-    AccordionItem,
-    AccordionTrigger,
-    AccordionContent,
-} from "@/components/ui/accordion";
-import FullAnalysisModal from "@/components/analysis/FullAnalysisModal";
-import { FaChartLine, FaFileAlt } from "react-icons/fa";
+import { FaFileAlt, FaChartLine } from "react-icons/fa";
+import FullAnalysisModal from "./FullAnalysisModal";
+import SummaryModal from "./SummaryModal";
 
-/**
- * GtmAnalysis
- * Props:
- *  - scanResults: object produced by ScanUrlForm (contains containerScans array)
- *
- * Uses shadcn accordion: summary in the trigger, details inside content (closed by default).
- */
 export default function GtmAnalysis({ scanResults }) {
     const [selectedAnalysis, setSelectedAnalysis] = React.useState(null);
+    const [selectedSummary, setSelectedSummary] = React.useState(null);
 
-    if (!scanResults || !Array.isArray(scanResults.containerScans)) return null;
+    if (!scanResults || !Array.isArray(scanResults.containerScans)) {
+        return <div>No scan results available</div>;
+    }
 
     const openModal = (id) => {
-        const analysis = scanResults.containerScans.find((c) => c.id === id);
+        const analysis = scanResults.containerScans.find(scan => scan.id === id);
         setSelectedAnalysis(analysis);
     };
-    const closeModal = () => setSelectedAnalysis(null);
 
-    const safeParseMessage = (msg) => {
-        if (!msg) return null;
-        if (typeof msg === "object") return msg;
-        if (typeof msg === "string") {
+    const closeModal = () => {
+        setSelectedAnalysis(null);
+    };
+
+    const openSummaryModal = (id) => {
+        const analysis = scanResults.containerScans.find(scan => scan.id === id);
+        setSelectedSummary(analysis);
+    };
+
+    const closeSummaryModal = () => {
+        setSelectedSummary(null);
+    };
+
+    const countSafe = (arr) => Array.isArray(arr) ? arr.length : 0;
+
+    // Use the same parsing logic as SummaryModal
+    const parseMessageData = (data) => {
+        if (!data) return null;
+
+        let parsedMessage;
+        if (data.message && typeof data.message === 'string') {
             try {
-                return JSON.parse(msg);
-            } catch {
+                parsedMessage = JSON.parse(data.message);
+            } catch (e) {
+                console.error('Failed to parse message:', e);
                 return null;
             }
         }
-        return null;
-    };
 
-    const countSafe = (v) =>
-        Array.isArray(v) ? v.length : v && typeof v === "object" ? Object.keys(v).length : 0;
-
-    const normalizeTechList = (payload, tagData) => {
-        const tech = payload?.techList || tagData?.techList || payload?.body?.techList || [];
-        if (!Array.isArray(tech)) return [];
-        return tech.map((t) => (typeof t === "string" ? t : t?.name || t?.title || JSON.stringify(t)));
+        return parsedMessage;
     };
 
     return (
         <div className="space-y-4">
             <Accordion type="single" collapsible>
                 {scanResults.containerScans.map((cscan) => {
-                    const id = cscan?.id || "unknown";
-                    const ok = cscan?.ok;
-                    const status = cscan?.status;
-                    const payload = cscan?.body ?? {};
+                    // Debug: Log the structure to understand the data
+                    console.log('Container scan data:', cscan);
 
-                    let parsedMessage = safeParseMessage(payload?.message);
-                    let tagData = payload?.data ?? payload;
-                    if (parsedMessage) {
-                        if (parsedMessage[id]) tagData = parsedMessage[id];
-                        else if (parsedMessage?.vitals || parsedMessage?.techList) tagData = parsedMessage;
+                    // Extract ID safely
+                    const id = cscan?.id || "unknown";
+
+                    // Try multiple paths to access the data
+                    const body = cscan?.body || {};
+                    const payload = body?.payload || {};
+
+                    // Extract status information
+                    const ok = cscan?.ok ?? body?.ok ?? payload?.ok ?? true;
+                    const status = cscan?.status ?? body?.status ?? payload?.status;
+
+                    // Use the same parsing logic as SummaryModal!
+                    const messageData = parseMessageData(body);
+
+                    // Extract GTM container data from the parsed message
+                    let tags = [];
+                    let variables = [];
+                    let triggers = [];
+                    let cmpName = null;
+                    let hasConsentMode = false;
+                    let isServerSide = false;
+
+                    if (messageData) {
+                        // Look for GTM Container in the message data
+                        Object.keys(messageData).forEach(key => {
+                            const containerData = messageData[key];
+
+                            if (containerData?.entityType === 'GTM Container') {
+                                tags = containerData.tags || [];
+                                variables = containerData.variables || [];
+                                triggers = containerData.triggers || [];
+                                cmpName = containerData.cmpName || null;
+                                hasConsentMode = containerData.hasConsentMode || false;
+                                isServerSide = containerData.isServerSide || false;
+                            }
+                        });
                     }
 
-                    const isServerSide =
-                        !!tagData?.server_container_url ||
-                        /server_container|server_container_url|server-side|server_container/i.test(
-                            JSON.stringify(tagData || "")
-                        );
+                    // Debug: Log extracted data
+                    console.log('Extracted data for container', id, {
+                        tags: tags.length,
+                        variables: variables.length,
+                        triggers: triggers.length,
+                        messageData: messageData
+                    });
 
-                    const hasConsentMode =
-                        tagData?.consentMode === true ||
-                        tagData?.consent_mode === true ||
-                        /consentMode|consent_mode|consentModeEnabled|consentMode/i.test(JSON.stringify(tagData || ""));
-
-                    const techNames = normalizeTechList(payload, tagData).join(" ").toLowerCase();
-                    const knownCmps = ["cookiebot", "cookieinformation", "cookieconsent", "onetrust", "cookielaw", "klaro"];
-                    const cmpDetected = knownCmps.find((k) => techNames.includes(k)) || tagData?.cmp || tagData?.cookie_manager || null;
-                    const cmpName = typeof cmpDetected === "string" ? cmpDetected : cmpDetected ? String(cmpDetected) : null;
-
-                    const variables = tagData?.variables || tagData?.vars || [];
-                    const tags = tagData?.tags || [];
-                    const triggers = tagData?.triggers || [];
-
-                    const techList = normalizeTechList(payload, tagData);
+                    const techList = [];
+                    if (Array.isArray(tags)) {
+                        tags.forEach(tag => {
+                            if (tag.type === 'gaawe') techList.push('GA4');
+                            if (tag.type === 'awct') techList.push('Google Ads');
+                            if (tag.name?.toLowerCase().includes('facebook') || tag.name?.toLowerCase().includes('meta')) {
+                                techList.push('Meta Pixel');
+                            }
+                        });
+                    }
+                    const uniqueTechList = [...new Set(techList)];
 
                     return (
                         <AccordionItem key={id} value={id} className="mt-5">
-                            <AccordionTrigger className="bg-gtm-gradient p-5 rounder-lg text-white">
+                            <AccordionTrigger className="bg-gtm-gradient-start p-5 rounded-lg text-white">
                                 <div className="flex items-center justify-between w-full gap-4">
                                     <div className="flex-1 min-w-0">
                                         <div className="text-sm text-gray-200">Container</div>
                                         <div className="text-lg font-semibold truncate">{id}</div>
-                                        <div className="text-xs text-gray-100 truncate mt-1">{payload?.url ?? tagData?.url ?? ""}</div>
+                                        <div className="text-xs text-gray-100 truncate mt-1">{payload?.url ?? ""}</div>
                                     </div>
 
-                                    <div className="flex items-center gap-3 glass-morph p-5 min-w-[400px] max-w-[400px] overflow-hidden">
+                                    <div className="flex items-center gap-3 bg-gray-100 rounded-md p-5 min-w-[400px] max-w-[400px] overflow-hidden shadow-lg">
                                         <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${ok ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800"}`}>
                                             {ok ? "OK" : `Err ${status ?? ""}`}
                                         </div>
@@ -121,25 +149,22 @@ export default function GtmAnalysis({ scanResults }) {
 
                             <AccordionContent>
                                 <Card className="border">
-                                    <CardContent>
-
-                                        {/* Summary row (mobile-friendly) */}
+                                    <CardContent className="p-6">
                                         <div className="flex items-center justify-between gap-4 mb-4 md:hidden">
                                             <div className="text-xs text-gray-500">{isServerSide ? "Server-side container" : "Client-side container"}</div>
                                             <div className="text-xs text-gray-500">{hasConsentMode ? "Consent mode: yes" : "Consent mode: no"}</div>
                                             <div className="text-xs text-gray-500">{cmpName || "No CMP detected"}</div>
                                         </div>
 
-                                        {/* Detailed info */}
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                                             <div className="bg-gray-50 p-3 rounded">
                                                 <div className="text-xs text-gray-500">Raw success</div>
-                                                <div className="mt-1 text-sm">{String(tagData?.success ?? payload?.success ?? false)}</div>
+                                                <div className="mt-1 text-sm">{String(payload?.success ?? false)}</div>
                                             </div>
 
                                             <div className="bg-gray-50 p-3 rounded">
                                                 <div className="text-xs text-gray-500">Server container URL</div>
-                                                <div className="mt-1 text-sm">{tagData?.server_container_url || "—"}</div>
+                                                <div className="mt-1 text-sm">{"—"}</div>
                                             </div>
 
                                             <div className="bg-gray-50 p-3 rounded">
@@ -148,15 +173,22 @@ export default function GtmAnalysis({ scanResults }) {
                                             </div>
 
                                             <button
-                                                className="bg-gtm-gradient-end cursor-pointer text-black underline px-4 py-2 rounded-md hover:bg-blue-600 flex items-center gap-2 justify-center "
+                                                className="bg-gtm-gradient-start text-white px-4 py-2 rounded-md hover:bg-blue-600 flex items-center gap-2 justify-center"
                                                 onClick={() => openModal(id)}
                                             >
-                                                <FaFileAlt className="w-4 h-4" />
+                                                <FaChartLine className="w-4 h-4" />
                                                 View Full Analysis
+                                            </button>
+
+                                            <button
+                                                className="bg-gray-200 cursor-pointer text-black underline px-4 py-2 rounded-md hover:bg-gray-300 flex items-center gap-2 justify-center"
+                                                onClick={() => openSummaryModal(id)}
+                                            >
+                                                <FaFileAlt className="w-4 h-4" />
+                                                View Summary
                                             </button>
                                         </div>
 
-                                        {/* Tables as Accordions */}
                                         <div className="space-y-4">
                                             <Accordion type="single" collapsible>
                                                 <AccordionItem value="tags">
@@ -174,27 +206,24 @@ export default function GtmAnalysis({ scanResults }) {
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
-                                                                    {Array.isArray(tags) && tags.length ? (
-                                                                        tags.map((t, i) => {
-                                                                            const name = t?.name || t?.tag || t?.type || String(t);
-                                                                            const type = t?.type || (t?.function ? "function" : "unknown");
-                                                                            const details = t?.parameters ? JSON.stringify(t.parameters).slice(0, 300) : t?.vtp_html ? "<html/>" : JSON.stringify(t).slice(0, 300);
-                                                                            return (
-                                                                                <tr key={i} className="odd:bg-white even:bg-slate-50">
-                                                                                    <td className="px-3 py-2 align-top">{i + 1}</td>
-                                                                                    <td className="px-3 py-2 align-top">
-                                                                                        <div className="font-medium">{name}</div>
-                                                                                        <div className="text-xs text-gray-500">{type}</div>
-                                                                                    </td>
-                                                                                    <td className="px-3 py-2 align-top">
-                                                                                        <div className="text-xs text-gray-700 whitespace-pre-wrap">{details}</div>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            );
-                                                                        })
+                                                                    {Array.isArray(tags) && tags.length > 0 ? (
+                                                                        tags.map((t, i) => (
+                                                                            <tr key={i} className="border-b hover:bg-gray-50">
+                                                                                <td className="px-3 py-2 text-xs text-gray-400">{i + 1}</td>
+                                                                                <td className="px-3 py-2">
+                                                                                    <div className="font-medium">{t.name || "(unnamed)"}</div>
+                                                                                    <div className="text-xs text-gray-500">{t.type}</div>
+                                                                                </td>
+                                                                                <td className="px-3 py-2 text-xs">
+                                                                                    {t.parameters?.length ? `${t.parameters.length} params` : "No params"}
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))
                                                                     ) : (
                                                                         <tr>
-                                                                            <td colSpan={3} className="px-3 py-4 text-xs text-gray-500">No tags detected</td>
+                                                                            <td colSpan={3} className="px-3 py-4 text-xs text-gray-500">
+                                                                                No tags detected
+                                                                            </td>
                                                                         </tr>
                                                                     )}
                                                                 </tbody>
@@ -218,24 +247,19 @@ export default function GtmAnalysis({ scanResults }) {
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
-                                                                    {Array.isArray(variables) && variables.length ? (
-                                                                        variables.map((v, i) => {
-                                                                            const name = v?.name || v?.vtp_name || v?.variableName || `var-${i + 1}`;
-                                                                            const type = v?.type || v?.vtp_javascript ? "js" : v?.type || "unknown";
-                                                                            const details = v?.parameters ? JSON.stringify(v.parameters).slice(0, 300) : JSON.stringify(v).slice(0, 300);
-                                                                            return (
-                                                                                <tr key={i} className="odd:bg-white even:bg-slate-50">
-                                                                                    <td className="px-3 py-2 align-top">{i + 1}</td>
-                                                                                    <td className="px-3 py-2 align-top">
-                                                                                        <div className="font-medium">{name}</div>
-                                                                                        <div className="text-xs text-gray-500">{type}</div>
-                                                                                    </td>
-                                                                                    <td className="px-3 py-2 align-top">
-                                                                                        <div className="text-xs text-gray-700 whitespace-pre-wrap">{details}</div>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            );
-                                                                        })
+                                                                    {Array.isArray(variables) && variables.length > 0 ? (
+                                                                        variables.map((v, i) => (
+                                                                            <tr key={i} className="border-b hover:bg-gray-50">
+                                                                                <td className="px-3 py-2 text-xs text-gray-400">{i + 1}</td>
+                                                                                <td className="px-3 py-2">
+                                                                                    <div className="font-medium">{v.name || "(unnamed)"}</div>
+                                                                                    <div className="text-xs text-gray-500">{v.type}</div>
+                                                                                </td>
+                                                                                <td className="px-3 py-2 text-xs">
+                                                                                    {v.parameters?.length ? `${v.parameters.length} params` : "No params"}
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))
                                                                     ) : (
                                                                         <tr>
                                                                             <td colSpan={3} className="px-3 py-4 text-xs text-gray-500">No variables detected</td>
@@ -262,24 +286,19 @@ export default function GtmAnalysis({ scanResults }) {
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
-                                                                    {Array.isArray(triggers) && triggers.length ? (
-                                                                        triggers.map((tr, i) => {
-                                                                            const name = tr?.name || tr?.type || `trigger-${i + 1}`;
-                                                                            const type = tr?.type || "unknown";
-                                                                            const details = tr?.parameters ? JSON.stringify(tr.parameters).slice(0, 300) : JSON.stringify(tr).slice(0, 300);
-                                                                            return (
-                                                                                <tr key={i} className="odd:bg-white even:bg-slate-50">
-                                                                                    <td className="px-3 py-2 align-top">{i + 1}</td>
-                                                                                    <td className="px-3 py-2 align-top">
-                                                                                        <div className="font-medium">{name}</div>
-                                                                                        <div className="text-xs text-gray-500">{type}</div>
-                                                                                    </td>
-                                                                                    <td className="px-3 py-2 align-top">
-                                                                                        <div className="text-xs text-gray-700 whitespace-pre-wrap">{details}</div>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            );
-                                                                        })
+                                                                    {Array.isArray(triggers) && triggers.length > 0 ? (
+                                                                        triggers.map((tr, i) => (
+                                                                            <tr key={i} className="border-b hover:bg-gray-50">
+                                                                                <td className="px-3 py-2 text-xs text-gray-400">{i + 1}</td>
+                                                                                <td className="px-3 py-2">
+                                                                                    <div className="font-medium">{tr.name || "(unnamed)"}</div>
+                                                                                    <div className="text-xs text-gray-500">{tr.type}</div>
+                                                                                </td>
+                                                                                <td className="px-3 py-2 text-xs">
+                                                                                    {tr.parameters?.length ? `${tr.parameters.length} params` : "No params"}
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))
                                                                     ) : (
                                                                         <tr>
                                                                             <td colSpan={3} className="px-3 py-4 text-xs text-gray-500">No triggers detected</td>
@@ -293,12 +312,11 @@ export default function GtmAnalysis({ scanResults }) {
                                             </Accordion>
                                         </div>
 
-                                        {/* Martech */}
                                         <div className="mt-6">
                                             <h4 className="text-sm font-medium mb-2">Martech summary</h4>
-                                            {techList.length ? (
+                                            {uniqueTechList.length ? (
                                                 <div className="flex flex-wrap gap-2">
-                                                    {techList.map((t, i) => (
+                                                    {uniqueTechList.map((t, i) => (
                                                         <span key={i} className="px-3 py-1 rounded-full bg-slate-100 text-sm text-slate-800 border">
                                                             {t}
                                                         </span>
@@ -308,7 +326,6 @@ export default function GtmAnalysis({ scanResults }) {
                                                 <div className="text-xs text-gray-500">No technologies detected</div>
                                             )}
                                         </div>
-
                                     </CardContent>
                                 </Card>
                             </AccordionContent>
@@ -321,6 +338,13 @@ export default function GtmAnalysis({ scanResults }) {
                 isOpen={!!selectedAnalysis}
                 onClose={closeModal}
                 analysisData={selectedAnalysis?.body}
+            />
+
+            <SummaryModal
+                isOpen={!!selectedSummary}
+                onClose={closeSummaryModal}
+                analysisData={selectedSummary?.body}
+                containerId={selectedSummary?.id}
             />
         </div>
     );

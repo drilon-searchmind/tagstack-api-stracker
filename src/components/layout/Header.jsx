@@ -24,12 +24,12 @@ export default function Header() {
                         <Link href="/" className="font-bold text-xl text-gray-900 hover:text-gray-700 transition-colors flex items-center">
                             <Image
                                 src="/images/logo/tagstackLogo2NoBG.png"
-                                alt="TagStack Logo"
+                                alt="Omnipixel Logo"
                                 width={40}
                                 height={40}
                                 className="mr-1"
                             />
-                            TagStack Scanner
+                            Omnipixel
                         </Link>
                     </>
 

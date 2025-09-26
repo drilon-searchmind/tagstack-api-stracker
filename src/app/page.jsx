@@ -11,9 +11,9 @@ export default function Home() {
 					<div className="mb-12">
 						<h1 className="text-5xl md:text-5xl lg:text-7xl font-extrabold text-white mb-6 leading-tight">
 							<span className="block">Searchmind</span>
-							<span className="block text-white/90">TagStack</span>
+							<span className="block text-white/90">Omnipixel</span>
 							<span className="block text-3xl md:text-4xl lg:text-4xl font-light text-white/80">
-								URL Scanner
+								GTM Scanner
 							</span>
 						</h1>
 						<p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto leading-relaxed">
