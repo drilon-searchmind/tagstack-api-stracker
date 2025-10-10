@@ -12,7 +12,6 @@ async function debugPompdelux() {
         console.log('GTM Present:', result.isGTMPresent);
         console.log('Container IDs BEFORE filtering:', Array.from(result.containerIDs || []));
         
-        // Check if it has proper GTM IDs
         const properGTMIds = Array.from(result.containerIDs || []).filter(id => /^GTM-[A-Z0-9]+$/.test(id));
         console.log('Proper GTM IDs found:', properGTMIds);
         console.log('Should trigger alternative detection:', result.isGTMPresent && properGTMIds.length === 0);

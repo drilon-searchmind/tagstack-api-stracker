@@ -25,19 +25,16 @@ export default function ScanUrlForm() {
         setGtmContainers([]);
 
         try {
-            // 1) fetch container IDs
             const respGtm = await fetch(`/api/gtm-scan-id?url=${encodeURIComponent(url)}`);
             const gtmJson = await respGtm.json();
             if (!respGtm.ok) throw new Error(gtmJson.message || gtmJson.error || JSON.stringify(gtmJson));
 
-            // keep only valid GTM container ids (case-sensitive)
             const containers = Array.isArray(gtmJson.containers)
                 ? gtmJson.containers.filter(c => c && typeof c.id === 'string' && /^GTM-[A-Z0-9]+$/.test(c.id))
                 : [];
 
             setGtmContainers(containers);
 
-            // 2) run TagStack scan for each container id (use existing /api/scan?url= endpoint)
             const scans = await Promise.allSettled(
                 containers.map(ct => fetch(`/api/scan?url=${encodeURIComponent(ct.id)}`))
             );

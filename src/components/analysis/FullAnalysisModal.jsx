@@ -115,7 +115,6 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
         return events;
     };
 
-    // New LinkedIn extraction function
     const extractLinkedInEvents = (messageData) => {
         if (!messageData) return [];
 
@@ -143,7 +142,6 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
         return events;
     };
 
-    // New Klaviyo extraction function
     const extractKlaviyoEvents = (messageData) => {
         if (!messageData) return [];
 
@@ -171,7 +169,6 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
         return events;
     };
 
-    // New Pinterest extraction function
     const extractPinterestEvents = (messageData) => {
         if (!messageData) return [];
 
@@ -199,7 +196,6 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
         return events;
     };
 
-    // New Microsoft extraction function
     const extractMicrosoftEvents = (messageData) => {
         if (!messageData) return [];
 
@@ -239,7 +235,6 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
 
             if (containerData?.entityType === 'GTM Container' && containerData.tags) {
                 containerData.tags.forEach(tag => {
-                    // Exclude all the platforms we now have dedicated tabs for
                     if (tag.type !== 'gaawe' && tag.type !== 'awct' && 
                         tag.type !== 'linkedin_insight' && tag.type !== 'klaviyo' && 
                         tag.type !== 'pinterest_tag' && tag.type !== 'bing_ads' && 
@@ -288,7 +283,6 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
             'mouseflow': 'Mouseflow',
             'fullstory': 'FullStory',
             'crazyegg': 'Crazy Egg',
-            // New additions
             'klaviyo': 'Klaviyo',
             'klaviyo_pixel': 'Klaviyo Pixel',
             'bing_ads': 'Microsoft Advertising (Bing)',
@@ -685,7 +679,7 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
                             <strong>GTM Container:</strong> {gtmContainers.map(c => c.id).join(', ')}
                             {gtmContainers.some(c => c.consentMode) && (
                                 <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
-                                    Consent Mode Enabled
+                                    Consent Mode Detected
                                 </span>
                             )}
                         </div>

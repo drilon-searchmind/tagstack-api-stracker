@@ -23,11 +23,9 @@ async function testStapeWidget() {
         console.log('Widget content length:', content.length);
         console.log('First 500 chars:', content.substring(0, 500));
         
-        // Look for GTM patterns
         const gtmMatches = content.match(/GTM-[A-Z0-9]+/gi);
         console.log('GTM matches found:', gtmMatches);
         
-        // Look for other patterns
         const configPatterns = [
             /container.*id.*['"](GTM-[A-Z0-9]+)['"]/gi,
             /gtm_id['"]\s*:\s*['"](GTM-[A-Z0-9]+)['"]/gi,

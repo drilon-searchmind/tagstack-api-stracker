@@ -9,13 +9,10 @@ export async function GET(request) {
     const url = searchParams.get("url");
     if (!url) return NextResponse.json({ message: "URL parameter is required" }, { status: 400 });
 
-    // Initialize server-side GTM detector (no browser required!)
     const gtmDetector = new ServerSideGTMDetector();
     
-    // Perform server-side GTM detection
     const scanResult = await gtmDetector.detectGTMContainers(url);
     
-    // Transform to match expected API format
     const containers = scanResult.containerIDs.map(id => ({ id }));
     
     const result = {

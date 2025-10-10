@@ -8,10 +8,9 @@ async function testDetector() {
     
     const detector = new ServerSideGTMDetector();
     
-    // Test websites (feel free to change these)
     const testUrls = [
-        'https://marketingplatform.google.com/about/',  // Likely has real GTM
-        'https://example.com'          // Simple test site
+        'https://marketingplatform.google.com/about/',
+        'https://example.com'
     ];
     
     for (const url of testUrls) {
@@ -52,7 +51,6 @@ async function testDetector() {
     console.log('✨ Testing complete!');
 }
 
-// Run the test if called directly
 if (require.main === module) {
     testDetector().catch(console.error);
 }

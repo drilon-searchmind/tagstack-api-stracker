@@ -15,12 +15,10 @@ async function testPompdelux() {
         console.log('Scripts found:', result.scriptsFound.length);
         console.log('Network requests:', result.networkRequests.length);
         
-        // Let's also fetch the HTML to see what we're working with
         console.log('\n=== FETCHING HTML FOR ANALYSIS ===');
         const response = await fetch('https://pompdelux.dk/');
         const html = await response.text();
         
-        // Look for any GTM-related patterns in the HTML
         const gtmMatches = html.match(/GTM-[A-Z0-9-_]+/gi) || [];
         const gtmScripts = html.match(/googletagmanager\.com[^"']*|gtm\.js[^"']*/gi) || [];
         const dataLayerRefs = html.match(/dataLayer[^"']*[.push()]*[^"']*/gi) || [];

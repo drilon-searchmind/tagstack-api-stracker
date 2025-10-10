@@ -23,7 +23,6 @@ export default function SummaryModal({ isOpen, onClose, analysisData, containerI
 
     const messageData = parseMessageData(analysisData);
 
-    // Extract summary statistics
     const getSummaryStats = () => {
         if (!messageData) return null;
 

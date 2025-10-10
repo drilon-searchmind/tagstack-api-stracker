@@ -3,17 +3,13 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-// removed static puppeteer import to avoid bundling issues
 import * as acorn from 'acorn';
 
-// helper: extract top-level var/let/const data = { ... } object text
 function extractVarObjectFromScript(code, varName = 'data') {
     if (!code || typeof code !== 'string') return null;
-    // find "var data", "let data" or "const data" or "data =" occurrences
     const re = new RegExp('\\b(?:var|let|const)\\s+' + varName + '\\s*=|\\b' + varName + '\\s*=', 'i');
     const m = re.exec(code);
     if (!m) return null;
-    // start scanning from the first '{' after the match
     let idx = code.indexOf('{', m.index);
     if (idx === -1) return null;
 
@@ -28,7 +24,6 @@ function extractVarObjectFromScript(code, varName = 'data') {
         const ch = code[i];
         const next = code[i + 1];
 
-        // handle comments
         if (!inSingle && !inDouble && !inTemplate && !inRegex) {
             if (!inBlockComment && ch === '/' && next === '/') { inLineComment = true; i++; prevChar = ''; continue; }
             if (!inLineComment && ch === '/' && next === '*') { inBlockComment = true; i++; prevChar = ''; continue; }
@@ -44,10 +39,7 @@ function extractVarObjectFromScript(code, varName = 'data') {
             continue;
         }
 
-        // handle string/regex/template literal state entry/exit
         if (!inSingle && !inDouble && !inTemplate && ch === '/' && prevChar !== '\\') {
-            // naive detection of regex vs division - we only need to skip regex literals, so attempt a simple heuristic:
-            // if previous non-whitespace char is one of [=,(,:;!?{[}] then treat as start of regex
             let j = i - 1;
             while (j >= 0 && /\s/.test(code[j])) j--;
             const prev = j >= 0 ? code[j] : '';
@@ -73,18 +65,15 @@ function extractVarObjectFromScript(code, varName = 'data') {
         if (!inSingle && !inDouble && !inTemplate && ch === '`') { inTemplate = true; prevChar = ch; continue; }
         if (inTemplate) {
             if (ch === '`' && prevChar !== '\\') { inTemplate = false; prevChar = ch; continue; }
-            // skip ${ } expressions inside template: we must still count braces inside expressions - best-effort skip:
             prevChar = ch;
             continue;
         }
 
-        // Now actual brace counting
         if (ch === '{') {
             depth++;
         } else if (ch === '}') {
             depth--;
             if (depth === 0) {
-                // extract from initial '{' to this '}'
                 const objText = code.slice(idx, i + 1);
                 return objText;
             }
@@ -119,13 +108,11 @@ function extractVarObjectWithAcorn(code, varName = 'data') {
       }
     }
   } catch (e) {
-    // parse failed (minified/invalid), return null so you fall back to the heuristic extractor
     return null;
   }
   return null;
 }
 
-// A GET /api/scan?url=... endpoint that runs a headful scan with Puppeteer
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -142,11 +129,8 @@ export async function GET(request) {
       throw new Error(`Tracer file not found at ${tracerPath}`);
     }
 
-    // dynamic import for server runtime (Vercel) to avoid packaging chrome-aws-lambda at build-time
-    // runtime-safe dynamic loader to avoid Turbopack/Next static analysis of chrome-aws-lambda
     async function tryDynamicImport(spec) {
       try {
-        // using new Function to avoid static bundler analysis of import/require strings
         const mod = await new Function(`return import('${spec}')`)();
         return mod && (mod.default || mod);
       } catch (e) {
@@ -157,13 +141,11 @@ export async function GET(request) {
     let chromium = await tryDynamicImport("chrome-aws-lambda");
     let puppeteer = await tryDynamicImport("puppeteer-core");
 
-    // Fallback to plain puppeteer (dev) if puppeteer-core missing
     if (!puppeteer) {
       const puppeteerFallback = await tryDynamicImport("puppeteer");
       puppeteer = puppeteerFallback || null;
     }
 
-    // If chrome-aws-lambda not available (local dev), use a safe shim
     if (!chromium) {
       chromium = {
         args: [],
@@ -198,26 +180,19 @@ export async function GET(request) {
 
     const page = await browser.newPage();
     await page.setUserAgent("Mozilla/5.0 (compatible; GTM-Scanner/1.0)");
-    // Increase timeout for pages that lazy-load
     await page.goto(url, { waitUntil: "networkidle2", timeout: 45000 });
-    // allow late scripts to run
     await page.goto(url, { waitUntil: "networkidle2", timeout: 45000 });
-    // allow late scripts to run (use waitForTimeout if available, otherwise fallback)
     if (typeof page.waitForTimeout === "function") {
         await page.waitForTimeout(2000);
     } else {
         await new Promise((r) => setTimeout(r, 2000));
     }
 
-    // Inject and run tracer in page context
     const rawResult = await page.evaluate(async (code) => {
         try {
-            // evaluate tracer script
-            // eslint-disable-next-line no-eval
             eval(code);
             if (typeof traceGTMContainers === "function") {
                 const r = await traceGTMContainers();
-                // convert Sets to arrays (if tracer used them)
                 if (r && r.containerIDs && typeof r.containerIDs.forEach === "function") {
                     r.containerIDs = Array.from(r.containerIDs);
                 }
@@ -229,7 +204,6 @@ export async function GET(request) {
         }
     }, tracerCode);
 
-    // Snapshot of page-level indicators
     const extra = await page.evaluate(() => {
         const scripts = Array.from(document.querySelectorAll("script[src]")).map((s) => s.src);
         const gtm = window.google_tag_manager || null;
@@ -243,7 +217,6 @@ export async function GET(request) {
         };
     });
 
-    // For each script that looks like GTM/GTAG/loader, fetch content and look for container IDs
     const interesting = extra.scripts.filter((s) =>
         /gtm\.js|gtag\/js|loader\.js|googletagmanager|googlesyndication|tagmanager/i.test(s)
     );
@@ -251,7 +224,6 @@ export async function GET(request) {
     const foundIds = new Set((rawResult && rawResult.containerIDs) || []);
     const idRegex = /\b(GTM-[A-Z0-9-_]+|G-[A-Z0-9-_]+|GT-[A-Z0-9-_]+)\b/gi;
 
-    // helper to fetch script and extract IDs
     async function fetchScriptContent(srcUrl) {
         try {
             const resolved = new URL(srcUrl, url).toString();
@@ -273,23 +245,19 @@ export async function GET(request) {
         fetchedScripts.push(info);
     }
 
-    // Also scan performance resource entries (network) and fetch any GTM-like resources
     const perfResources = await page.evaluate(() =>
         (performance.getEntriesByType ? performance.getEntriesByType("resource") : []).map((r) => r.name)
     );
 
     const perfCandidates = (perfResources || []).filter((r) => /gtm\.js|gtag\/js|loader\.js/i.test(r));
     for (const p of perfCandidates) {
-        // skip if already fetched (by resolved URL)
         if (!fetchedScripts.some((f) => f.src && f.src.replace(/\/+$/, "") === p.replace(/\/+$/, ""))) {
             const info = await fetchScriptContent(p);
             fetchedScripts.push(info);
         }
     }
 
-    // Build containers array from foundIds + any fetchedScripts that look like GTM containers
     const containers = Array.from(foundIds).map((id) => ({ id }));
-    // If a fetched script contains a GTM id, attach its content to the container entry
     for (const s of fetchedScripts) {
         if (s.ids && s.ids.length) {
             s.ids.forEach((id) => {
@@ -303,12 +271,10 @@ export async function GET(request) {
                 }
             });
         } else if (s.src && /googletagmanager\.com\/gtm\.js/i.test(s.src)) {
-            // If no id extracted but URL looks like gtm.js, include as unknown container-source
             containers.push({ id: null, src: s.src, scriptContent: s.content, scriptContentLength: s.contentLength });
         }
     }
 
-    // For each detected container id, fetch the canonical GTM script from googletagmanager.com/gtm.js?id=...
     for (const c of containers) {
         if (!c.id) continue;
         const gtmUrl = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(c.id)}`;
@@ -317,7 +283,6 @@ export async function GET(request) {
             if (resp.ok) {
                 const content = await resp.text();
 
-                // extract only the var data = { ... } object (prefer Acorn, fallback to scanner)
                 let dataText = null;
                 try {
                     dataText = extractVarObjectWithAcorn(content, 'data');
@@ -326,13 +291,11 @@ export async function GET(request) {
                 }
                 if (!dataText) dataText = extractVarObjectFromScript(content, 'data');
 
-                // if extraction failed, keep safe fallback (empty string or full content as last resort)
-                const finalContent = dataText || ""; // <-- exactly what will be returned as c.gtmJs.content
+                const finalContent = dataText || "";
 
                 c.gtmJs = {
                     src: gtmUrl,
                     status: resp.status,
-                    // content now contains only the data object text (or empty string if not found)
                     content: finalContent,
                     contentLength: finalContent.length
                 };
@@ -340,13 +303,11 @@ export async function GET(request) {
                 c.gtmJs = { src: gtmUrl, status: resp.status };
             }
         } catch (err) {
-            // fallback: try reading your example gtmjs.js from temp-folder if available (useful for offline testing)
             try {
                 const fallbackPath = path.join(process.cwd(), "..", "temp-folder", "gtmjs.js");
                 if (fs.existsSync(fallbackPath)) {
                     const fallbackContent = fs.readFileSync(fallbackPath, "utf8");
 
-                    // extract data object from fallback too
                     let dataTextFallback = null;
                     try {
                         dataTextFallback = extractVarObjectWithAcorn(fallbackContent, 'data');
@@ -372,9 +333,7 @@ export async function GET(request) {
             }
         }
 
-        // inside your for (const c of containers) { ... } after c.gtmJs.content exists:
         if (c.gtmJs && c.gtmJs.content) {
-            // prefer AST extraction, fall back to the existing text-scanner
             let dataObjText = extractVarObjectWithAcorn(c.gtmJs.content, 'data');
             if (!dataObjText) dataObjText = extractVarObjectFromScript(c.gtmJs.content, 'data');
             if (dataObjText) {

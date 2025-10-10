@@ -38,7 +38,6 @@ export async function GET(request) {
             );
         }
 
-        // Return the successful response
         return NextResponse.json(data);
 
     } catch (error) {

@@ -33,7 +33,6 @@ async function investigateStapeConfig() {
         }
     }
 
-    // Also check for Shopify app configurations
     console.log('\n--- Checking Shopify App Configuration ---');
     try {
         const response = await fetch('https://pompdelux.dk/', {
@@ -41,11 +40,9 @@ async function investigateStapeConfig() {
         });
         const html = await response.text();
         
-        // Look for any references to Stape configuration
         const stapeRefs = html.match(/stape[^"']*|gtm[^"']*/gi);
         console.log('Stape/GTM references:', stapeRefs?.slice(0, 10) || 'None');
         
-        // Look for app configuration data
         const appConfigMatches = html.match(/<script[^>]*>(.*?stape.*?)<\/script>/gis);
         if (appConfigMatches) {
             console.log('App config scripts found:', appConfigMatches.length);

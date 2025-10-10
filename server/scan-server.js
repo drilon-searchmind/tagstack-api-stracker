@@ -7,7 +7,6 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json({ limit: '1mb' }));
 
-// Initialize the server-side GTM detector
 const gtmDetector = new ServerSideGTMDetector();
 
 app.post('/api/scan', async (req, res) => {
@@ -15,10 +14,8 @@ app.post('/api/scan', async (req, res) => {
     if (!url) return res.status(400).json({ error: 'missing url' });
 
     try {
-        // Use server-side GTM detection (no browser required!)
         const result = await gtmDetector.detectGTMContainers(url);
         
-        // Transform result to match the expected format
         const transformedResult = {
             success: !result.error,
             scannedUrl: url,
