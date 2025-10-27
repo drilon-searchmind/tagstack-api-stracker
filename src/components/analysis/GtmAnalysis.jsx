@@ -3,7 +3,7 @@
 import React from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
-import { FaFileAlt, FaChartLine } from "react-icons/fa";
+import { FaFileAlt, FaChartLine, FaCopy } from "react-icons/fa";
 import FullAnalysisModal from "./FullAnalysisModal";
 import SummaryModal from "./SummaryModal";
 import { findServerContainerUrl, extractGtmContainerData } from "@/utils/gtmHelpers";
@@ -11,6 +11,7 @@ import { findServerContainerUrl, extractGtmContainerData } from "@/utils/gtmHelp
 export default function GtmAnalysis({ scanResults }) {
     const [selectedAnalysis, setSelectedAnalysis] = React.useState(null);
     const [selectedSummary, setSelectedSummary] = React.useState(null);
+    const [copiedId, setCopiedId] = React.useState(null);
 
     if (!scanResults || !Array.isArray(scanResults.containerScans)) {
         return <div>No scan results available</div>;
@@ -50,6 +51,16 @@ export default function GtmAnalysis({ scanResults }) {
         }
 
         return parsedMessage;
+    };
+
+    const copyToClipboard = async (containerId) => {
+        try {
+            await navigator.clipboard.writeText(containerId);
+            setCopiedId(containerId);
+            setTimeout(() => setCopiedId(null), 2000); // Reset after 2 seconds
+        } catch (err) {
+            console.error('Failed to copy to clipboard:', err);
+        }
     };
 
     return (
@@ -97,7 +108,22 @@ export default function GtmAnalysis({ scanResults }) {
                                 <div className="flex items-center justify-between w-full gap-4">
                                     <div className="flex-1 min-w-0">
                                         <div className="text-sm text-gray-200">Container</div>
-                                        <div className="text-lg font-semibold truncate">{id}</div>
+                                        <div 
+                                            className="text-lg font-semibold truncate flex items-center gap-2 cursor-pointer hover:text-blue-200 transition-colors"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                copyToClipboard(id);
+                                            }}
+                                            title="Click to copy container ID"
+                                        >
+                                            {id}
+                                            <FaCopy 
+                                                className={`w-4 h-4 transition-colors ${copiedId === id ? 'text-green-300' : 'text-gray-100 hover:text-white'}`} 
+                                            />
+                                            {copiedId === id && (
+                                                <span className="text-xs text-green-300 ml-1">Copied!</span>
+                                            )}
+                                        </div>
                                         <div className="text-xs text-gray-100 truncate mt-1">{payload?.url ?? ""}</div>
                                     </div>
 
