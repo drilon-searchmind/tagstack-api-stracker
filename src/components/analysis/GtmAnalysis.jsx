@@ -64,7 +64,7 @@ export default function GtmAnalysis({ scanResults }) {
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4" id="gtmAnalysisResults">
             <Accordion type="single" collapsible>
                 {scanResults.containerScans.map((cscan) => {
                     const id = cscan?.id || "unknown";
@@ -217,7 +217,7 @@ export default function GtmAnalysis({ scanResults }) {
                                             </button>
 
                                             <button
-                                                className="bg-gray-200 cursor-pointer text-black underline px-4 py-2 rounded-md hover:bg-gray-300 flex items-center gap-2 justify-center col-span-3"
+                                                className="bg-gray-50 cursor-pointer text-black underline px-4 py-2 rounded-md hover:bg-gray-300 flex items-center gap-2 justify-center col-span-3"
                                                 onClick={() => openSummaryModal(id)}
                                             >
                                                 <FaFileAlt className="w-4 h-4" />

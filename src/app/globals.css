@@ -5,9 +5,19 @@
 
 :root {
   --max-width-desktop: 80rem;
-  --gtm-gradient-start: #9796F0;
-  --gtm-gradient-end: #FBC7D4;
-  --gtm-gradient: linear-gradient(90deg, #9796F0 0%, #FBC7D4 100%)
+  --gtm-gradient-start: #1E2B2B;
+  --gtm-gradient-end: #385555;
+  --gtm-gradient: linear-gradient(90deg, #141a1a 10%, #1E2B2B 80%);
+  
+  /* New color palette */
+  --dark-green: #1E2B2B;
+  --lime: #C6ED62;
+  --natural: #FEFBF2;
+  --light-natural: #EAE3D1;
+  --dark-natural: #D6CDB6;
+  --light-green: #6A8F4D;
+  --green: #213B34;
+  --black: #131313;
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -207,10 +217,34 @@ body {
 
 .hero-section {
   background: var(--gtm-gradient);
+  background-image: 
+    url('/images/all/668d30366707d33989e2fe9b_nr2Mørk.svg'),
+    var(--gtm-gradient);
+  background-size: cover, 100%, 100%;
+  background-position: bottom, center;
+  background-repeat: no-repeat, no-repeat;
+  background-blend-mode:darken;
   position: relative;
-  /* Remove any top margin/padding that might interfere */
   margin-top: 0;
   padding-top: 0;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(106, 143, 77, 0.3);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero-section > * {
+  position: relative;
+  z-index: 2;
 }
 
 .dots-pattern {

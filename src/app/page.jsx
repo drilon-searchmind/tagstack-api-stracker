@@ -7,7 +7,7 @@ export default function Home() {
 				<div className="absolute inset-0 bg-gtm-gradient opacity-90"></div>
 				<div className="dots-pattern absolute inset-0 opacity-20"></div>
 
-				<div className="relative z-10 flex flex-col items-center justify-center text-center px-4 w-full max-w-[var(--max-width-desktop)]">
+				<div className="relative z-10 flex flex-col px-4 w-full max-w-[var(--max-width-desktop)]">
 					<div className="mb-12">
 						<h1 className="text-5xl md:text-5xl lg:text-7xl font-extrabold text-white mb-6 leading-tight">
 							<span className="block">Searchmind</span>
@@ -16,7 +16,7 @@ export default function Home() {
 								GTM Scanner
 							</span>
 						</h1>
-						<p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto leading-relaxed">
+						<p className="text-xl md:text-2xl text-white/90 max-w-2xl leading-relaxed">
 							Analyze your website's marketing tags and GTM containers with our powerful TagStack API integration
 						</p>
 					</div>
