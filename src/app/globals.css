@@ -7,7 +7,7 @@
   --max-width-desktop: 80rem;
   --gtm-gradient-start: #1E2B2B;
   --gtm-gradient-end: #385555;
-  --gtm-gradient: linear-gradient(90deg, #141a1a 10%, #1E2B2B 80%);
+  --gtm-gradient: linear-gradient(90deg, #141a1a 10%, #1E2B2B 50%);
   
   /* New color palette */
   --dark-green: #1E2B2B;
@@ -248,9 +248,18 @@ body {
 }
 
 .dots-pattern {
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.55) 1px, transparent 1px);
   background-size: 30px 30px;
   background-position: 0 0, 15px 15px;
+  position: absolute;
+  max-width: 1000px;
+  max-height: 1000px;
+  top: 35%;
+  left: 10%;
+  -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0));
+  mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0));
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
 .hero-section .glass-morph {
