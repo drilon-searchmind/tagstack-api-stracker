@@ -324,49 +324,49 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
             label: 'GA4',
             icon: FaGoogle,
             count: ga4Events.length + ga4Streams.length,
-            color: 'text-blue-500'
+            color: 'text-gtm-primary'
         },
         {
             id: 'meta',
             label: 'Meta',
             icon: FaFacebook,
             count: metaEvents.length,
-            color: 'text-blue-600'
+            color: 'text-gtm-secondary'
         },
         {
             id: 'google-ads',
             label: 'Google Ads',
             icon: FaChartBar,
             count: googleAdsEvents.length,
-            color: 'text-green-500'
+            color: 'text-gtm-accent'
         },
         {
             id: 'linkedin',
             label: 'LinkedIn',
             icon: FaLinkedin,
             count: linkedinEvents.length,
-            color: 'text-blue-700'
+            color: 'text-gtm-primary'
         },
         {
             id: 'klaviyo',
             label: 'Klaviyo',
             icon: MdEmail,
             count: klaviyoEvents.length,
-            color: 'text-orange-500'
+            color: 'text-gtm-secondary'
         },
         {
             id: 'pinterest',
             label: 'Pinterest',
             icon: FaPinterest,
             count: pinterestEvents.length,
-            color: 'text-red-500'
+            color: 'text-gtm-accent'
         },
         {
             id: 'microsoft',
             label: 'Microsoft',
             icon: FaMicrosoft,
             count: microsoftEvents.length,
-            color: 'text-blue-400'
+            color: 'text-gtm-primary'
         },
         {
             id: 'other',
@@ -389,14 +389,14 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
                         </p>
                     )}
                 </div>
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                <span className="px-2 py-1 bg-gtm-primary text-white rounded text-xs">
                     Event
                 </span>
             </div>
             {event.details && (
                 <div className="mt-2">
                     <details className="text-xs">
-                        <summary className="cursor-pointer text-gray-500">View Details</summary>
+                        <summary className="cursor-pointer text-gray-500 hover:text-gtm-primary">View Details</summary>
                         <pre className="mt-2 bg-white p-2 rounded border overflow-x-auto">
                             {JSON.stringify(event.details, null, 2)}
                         </pre>
@@ -414,7 +414,7 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
                         {ga4Events.length > 0 && (
                             <div>
                                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                                    <FaGoogle className="text-blue-500" />
+                                    <FaGoogle className="text-gtm-primary" />
                                     GA4 Events ({ga4Events.length})
                                 </h3>
                                 <div className="grid gap-3">
@@ -428,7 +428,7 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
                         {ga4Streams.length > 0 && (
                             <div>
                                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                                    <FaGoogle className="text-blue-500" />
+                                    <FaGoogle className="text-gtm-primary" />
                                     GA4 Streams ({ga4Streams.length})
                                 </h3>
                                 <div className="grid gap-3">
@@ -468,7 +468,7 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
                         {metaEvents.length > 0 ? (
                             <div>
                                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                                    <FaFacebook className="text-blue-600" />
+                                    <FaFacebook className="text-gtm-secondary" />
                                     Meta Events ({metaEvents.length})
                                 </h3>
                                 <div className="grid gap-3">
@@ -491,7 +491,7 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
                         {googleAdsEvents.length > 0 ? (
                             <div>
                                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                                    <FaChartBar className="text-green-500" />
+                                    <FaChartBar className="text-gtm-accent" />
                                     Google Ads Events ({googleAdsEvents.length})
                                 </h3>
                                 <div className="grid gap-3">
@@ -514,7 +514,7 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
                         {linkedinEvents.length > 0 ? (
                             <div>
                                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                                    <FaLinkedin className="text-blue-700" />
+                                    <FaLinkedin className="text-gtm-primary" />
                                     LinkedIn Events ({linkedinEvents.length})
                                 </h3>
                                 <div className="grid gap-3">
@@ -537,7 +537,7 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
                         {klaviyoEvents.length > 0 ? (
                             <div>
                                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                                    <MdEmail className="text-orange-500" />
+                                    <MdEmail className="text-gtm-secondary" />
                                     Klaviyo Events ({klaviyoEvents.length})
                                 </h3>
                                 <div className="grid gap-3">
@@ -560,7 +560,7 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
                         {pinterestEvents.length > 0 ? (
                             <div>
                                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                                    <FaPinterest className="text-red-500" />
+                                    <FaPinterest className="text-gtm-accent" />
                                     Pinterest Events ({pinterestEvents.length})
                                 </h3>
                                 <div className="grid gap-3">
@@ -583,7 +583,7 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
                         {microsoftEvents.length > 0 ? (
                             <div>
                                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                                    <FaMicrosoft className="text-blue-400" />
+                                    <FaMicrosoft className="text-gtm-primary" />
                                     Microsoft Ads Events ({microsoftEvents.length})
                                 </h3>
                                 <div className="grid gap-3">
@@ -631,12 +631,12 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
     return (
         <div className="glass-morph-dark fixed inset-0 flex items-center justify-center z-50 pt-40">
             <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-[var(--max-width-desktop)] max-h-[90vh] overflow-hidden flex flex-col">
-                <div className="sticky top-0 bg-white border-b p-6">
+                <div className="sticky top-0 bg-gtm-primary border-b p-6">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-2xl font-bold">Full Analysis</h2>
+                        <h2 className="text-2xl font-bold text-white">Full Analysis</h2>
                         <button
                             onClick={onClose}
-                            className="text-gray-500 hover:text-gray-700"
+                            className="text-white/80 hover:text-white"
                         >
                             <FaTimes size={20} />
                         </button>
@@ -652,14 +652,14 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`flex items-center gap-2 py-4 px-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${activeTab === tab.id
-                                            ? 'border-blue-500 text-blue-600'
+                                            ? 'border-gtm-primary text-gtm-primary'
                                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                         }`}
                                 >
                                     <Icon className={tab.color} />
                                     {tab.label}
                                     {tab.count > 0 && (
-                                        <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
+                                        <span className="bg-gtm-accent text-gray-900 px-2 py-1 rounded-full text-xs font-medium">
                                             {tab.count}
                                         </span>
                                     )}
@@ -676,9 +676,9 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
                 {gtmContainers.length > 0 && (
                     <div className="border-t bg-gray-50 p-4">
                         <div className="text-sm text-gray-600">
-                            <strong>GTM Container:</strong> {gtmContainers.map(c => c.id).join(', ')}
+                            <strong className="text-gtm-primary">GTM Container:</strong> {gtmContainers.map(c => c.id).join(', ')}
                             {gtmContainers.some(c => c.consentMode) && (
-                                <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                                <span className="ml-2 px-2 py-1 bg-gtm-secondary text-white rounded text-xs font-medium">
                                     Consent Mode Detected
                                 </span>
                             )}
@@ -688,7 +688,7 @@ export default function FullAnalysisModal({ isOpen, onClose, analysisData }) {
 
                 <div className="border-t bg-gray-50 p-4">
                     <details className="text-sm">
-                        <summary className="cursor-pointer font-medium text-gray-600">Raw Analysis Data</summary>
+                        <summary className="cursor-pointer font-medium text-gray-600 hover:text-gtm-primary">Raw Analysis Data</summary>
                         <pre className="mt-2 bg-white p-4 rounded border overflow-x-auto text-xs max-h-48">
                             {JSON.stringify(analysisData, null, 2)}
                         </pre>

@@ -351,3 +351,109 @@ html {
 .login-bg-gradient {
   background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%);
 }
+
+/* Scanning Overlay Styles */
+.scanning-overlay-bg {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+  background-image: 
+    url('/images/all/668d30366707d33989e2fe9b_nr2Mørk.svg'),
+    linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+  background-size: cover, 100%, 100%;
+  background-position: bottom, center;
+  background-repeat: no-repeat, no-repeat;
+  background-blend-mode: soft-light;
+}
+
+/* GTM Theme Colors for Animations */
+.bg-gtm-primary {
+  background-color: var(--gtm-gradient-start);
+}
+
+.bg-gtm-secondary {
+  background-color: var(--light-green);
+}
+
+.bg-gtm-accent {
+  background-color: var(--lime);
+}
+
+.border-t-gtm-primary {
+  border-top-color: var(--gtm-gradient-start);
+}
+
+.border-r-gtm-secondary {
+  border-right-color: var(--light-green);
+}
+
+.border-b-gtm-accent {
+  border-bottom-color: var(--lime);
+}
+
+/* GTM Theme Color Text Classes */
+.text-gtm-primary {
+  color: var(--gtm-gradient-start);
+}
+
+.text-gtm-secondary {
+  color: var(--light-green);
+}
+
+.text-gtm-accent {
+  color: var(--lime);
+}
+
+/* Animation Delay Classes */
+.animation-delay-100 {
+  animation-delay: 0.1s;
+}
+
+.animation-delay-150 {
+  animation-delay: 0.15s;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animation-delay-300 {
+  animation-delay: 0.3s;
+}
+
+.animation-delay-600 {
+  animation-delay: 0.6s;
+}
+
+.reverse-spin {
+  animation-direction: reverse;
+}
+
+/* Progress Bar Animation */
+.progress-bar-animation {
+  animation: progress-bar 3s ease-in-out infinite;
+}
+
+@keyframes progress-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Fade Up Animation for Scan Results */
+.fade-up-enter {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeUpIn 0.6s ease-out forwards;
+}
+
+@keyframes fadeUpIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

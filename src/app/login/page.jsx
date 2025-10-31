@@ -9,8 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Mail, Lock, User } from "lucide-react";
 
 export default function LoginPage() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const [email, setEmail] = useState("test@tagstack.com");
+    const [password, setPassword] = useState("test123");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const router = useRouter();
