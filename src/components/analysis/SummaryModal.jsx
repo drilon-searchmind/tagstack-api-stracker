@@ -94,13 +94,13 @@ export default function SummaryModal({ isOpen, onClose, analysisData, containerI
     }
 
     const platforms = [
-        { name: 'GA4', icon: FaGoogle, events: stats.ga4Events, streams: stats.ga4Streams, color: 'text-blue-500' },
-        { name: 'Meta', icon: FaFacebook, events: stats.metaEvents, color: 'text-blue-600' },
-        { name: 'Google Ads', icon: FaChartBar, events: stats.googleAdsEvents, color: 'text-green-500' },
-        { name: 'LinkedIn', icon: FaLinkedin, events: stats.linkedinEvents, color: 'text-blue-700' },
-        { name: 'Klaviyo', icon: MdEmail, events: stats.klaviyoEvents, color: 'text-orange-500' },
-        { name: 'Pinterest', icon: FaPinterest, events: stats.pinterestEvents, color: 'text-red-500' },
-        { name: 'Microsoft', icon: FaMicrosoft, events: stats.microsoftEvents, color: 'text-blue-400' },
+        { name: 'GA4', icon: FaGoogle, events: stats.ga4Events, streams: stats.ga4Streams, color: 'text-gtm-primary' },
+        { name: 'Meta', icon: FaFacebook, events: stats.metaEvents, color: 'text-gtm-secondary' },
+        { name: 'Google Ads', icon: FaChartBar, events: stats.googleAdsEvents, color: 'text-gtm-accent' },
+        { name: 'LinkedIn', icon: FaLinkedin, events: stats.linkedinEvents, color: 'text-gtm-primary' },
+        { name: 'Klaviyo', icon: MdEmail, events: stats.klaviyoEvents, color: 'text-gtm-secondary' },
+        { name: 'Pinterest', icon: FaPinterest, events: stats.pinterestEvents, color: 'text-gtm-accent' },
+        { name: 'Microsoft', icon: FaMicrosoft, events: stats.microsoftEvents, color: 'text-gtm-primary' },
         { name: 'Other', icon: FaCog, events: stats.otherTech, color: 'text-gray-500' }
     ];
 
@@ -112,15 +112,15 @@ export default function SummaryModal({ isOpen, onClose, analysisData, containerI
         <div className="glass-morph-dark fixed inset-0 flex items-center justify-center z-50 pt-40">
             <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-2xl max-h-[90vh] overflow-hidden">
                 {/* Header */}
-                <div className="sticky top-0 bg-white border-b p-6">
+                <div className="sticky top-0 bg-gtm-primary border-b p-6">
                     <div className="flex justify-between items-center">
                         <div>
-                            <h2 className="text-2xl font-bold">Container Summary</h2>
-                            <p className="text-sm text-gray-600">{containerId}</p>
+                            <h2 className="text-2xl font-bold text-white">Container Summary</h2>
+                            <p className="text-sm text-white/80">{containerId}</p>
                         </div>
                         <button
                             onClick={onClose}
-                            className="text-gray-500 hover:text-gray-700"
+                            className="text-white/80 hover:text-white"
                         >
                             <FaTimes size={20} />
                         </button>
@@ -128,24 +128,24 @@ export default function SummaryModal({ isOpen, onClose, analysisData, containerI
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-6">
+                <div className="p-6 space-y-6 overflow-y-auto">
                     {/* Overview Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-blue-50 p-4 rounded-lg text-center">
-                            <div className="text-2xl font-bold text-blue-600">{totalEvents}</div>
-                            <div className="text-sm text-blue-800">Total Events</div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-gray-50 p-4 rounded-lg text-center">
+                            <div className="text-2xl font-bold text-gtm-primary">{totalEvents}</div>
+                            <div className="text-sm text-gray-600">Total Events</div>
                         </div>
-                        <div className="bg-green-50 p-4 rounded-lg text-center">
-                            <div className="text-2xl font-bold text-green-600">{stats.totalTags}</div>
-                            <div className="text-sm text-green-800">Tags</div>
+                        <div className="bg-gray-50 p-4 rounded-lg text-center">
+                            <div className="text-2xl font-bold text-gtm-secondary">{stats.totalTags}</div>
+                            <div className="text-sm text-gray-600">Tags</div>
                         </div>
-                        <div className="bg-purple-50 p-4 rounded-lg text-center">
-                            <div className="text-2xl font-bold text-purple-600">{stats.totalTriggers}</div>
-                            <div className="text-sm text-purple-800">Triggers</div>
+                        <div className="bg-gray-50 p-4 rounded-lg text-center">
+                            <div className="text-2xl font-bold text-gtm-accent">{stats.totalTriggers}</div>
+                            <div className="text-sm text-gray-600">Triggers</div>
                         </div>
-                        <div className="bg-orange-50 p-4 rounded-lg text-center">
-                            <div className="text-2xl font-bold text-orange-600">{stats.totalVariables}</div>
-                            <div className="text-sm text-orange-800">Variables</div>
+                        <div className="bg-gray-50 p-4 rounded-lg text-center">
+                            <div className="text-2xl font-bold text-gtm-primary">{stats.totalVariables}</div>
+                            <div className="text-sm text-gray-600">Variables</div>
                         </div>
                     </div>
 
@@ -167,7 +167,7 @@ export default function SummaryModal({ isOpen, onClose, analysisData, containerI
                                                     {platform.events} event{platform.events !== 1 ? 's' : ''}
                                                 </div>
                                                 {platform.name === 'GA4' && platform.streams > 0 && (
-                                                    <div className="text-xs text-gray-500">
+                                                    <div className="text-xs text-gray-600">
                                                         + {platform.streams} stream{platform.streams !== 1 ? 's' : ''}
                                                     </div>
                                                 )}
@@ -177,7 +177,7 @@ export default function SummaryModal({ isOpen, onClose, analysisData, containerI
                                 })}
                             </div>
                         ) : (
-                            <div className="text-center py-8 text-gray-500">
+                            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
                                 No marketing platforms detected
                             </div>
                         )}
@@ -187,23 +187,23 @@ export default function SummaryModal({ isOpen, onClose, analysisData, containerI
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Configuration Status</h3>
                         <div className="space-y-3">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                                 {stats.hasConsentMode ? (
-                                    <FaCheckCircle className="text-green-500" />
+                                    <FaCheckCircle className="text-gtm-secondary" />
                                 ) : (
                                     <FaExclamationTriangle className="text-orange-500" />
                                 )}
                                 <span>Consent Mode: {stats.hasConsentMode ? 'Enabled' : 'Disabled'}</span>
                             </div>
 
-                            <div className="flex items-center gap-3">
-                                <FaCheckCircle className={stats.isServerSide ? 'text-green-500' : 'text-blue-500'} />
+                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                <FaCheckCircle className={stats.isServerSide ? 'text-gtm-secondary' : 'text-gtm-primary'} />
                                 <span>Container Type: {stats.isServerSide ? 'Server-side' : 'Client-side'}</span>
                             </div>
 
                             {stats.cmpName && (
-                                <div className="flex items-center gap-3">
-                                    <FaCheckCircle className="text-green-500" />
+                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                    <FaCheckCircle className="text-gtm-secondary" />
                                     <span>CMP: {stats.cmpName}</span>
                                 </div>
                             )}
@@ -223,8 +223,8 @@ export default function SummaryModal({ isOpen, onClose, analysisData, containerI
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
                                 <div
-                                    className={`h-2 rounded-full ${stats.hasConsentMode && activePlatforms.length > 0 ? 'bg-green-500 w-4/5' :
-                                            activePlatforms.length > 0 ? 'bg-yellow-500 w-3/5' : 'bg-red-500 w-2/5'
+                                    className={`h-2 rounded-full ${stats.hasConsentMode && activePlatforms.length > 0 ? 'bg-gtm-secondary w-4/5' :
+                                            activePlatforms.length > 0 ? 'bg-gtm-accent w-3/5' : 'bg-red-500 w-2/5'
                                         }`}
                                 ></div>
                             </div>

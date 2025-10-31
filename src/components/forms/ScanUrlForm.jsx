@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Lock, LogIn } from "lucide-react";
 import GtmAnalysis from "@/components/analysis/GtmAnalysis";
+import ScanningOverlay from "@/components/ui/ScanningOverlay";
 import { FaSearch } from "react-icons/fa";
 import Link from "next/link";
 
@@ -17,6 +18,7 @@ export default function ScanUrlForm() {
     const [scanResults, setScanResults] = useState(null);
     const [error, setError] = useState(null);
     const [gtmContainers, setGtmContainers] = useState([]);
+    const [showResults, setShowResults] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -26,6 +28,7 @@ export default function ScanUrlForm() {
         setError(null);
         setScanResults(null);
         setGtmContainers([]);
+        setShowResults(false);
 
         try {
             const respGtm = await fetch(`/api/gtm-scan-id?url=${encodeURIComponent(url)}`);
@@ -73,6 +76,12 @@ export default function ScanUrlForm() {
         }
     };
 
+    useEffect(() => {
+        if (scanResults && !isLoading) {
+            setTimeout(() => setShowResults(true), 100); // Small delay for smooth transition
+        }
+    }, [scanResults, isLoading]);
+
     if (status === "loading") {
         return (
             <div className="w-full">
@@ -90,15 +99,15 @@ export default function ScanUrlForm() {
                 <Card className="glass-morph border-white/30 shadow-2xl">
                     <CardContent className="p-8 text-center">
                         <div className="flex justify-center mb-4">
-                            <div className="w-16 h-16 bg-gradient-to-br from-[#192522] to-[#151f1d] rounded-full flex items-center justify-center">
+                            <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full flex items-center justify-center">
                                 <Lock className="w-8 h-8 text-white" />
                             </div>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-50 mb-4">Authentication Required</h3>
-                        <p className="text-gray-200 mb-6 text-lg">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h3>
+                        <p className="text-gray-600 mb-6 text-lg">
                             You must be signed in to use the GTM Container Scanner. Please log in to access this feature.
                         </p>
-                        <Button asChild className="bg-gradient-to-r from-[#192522] to-[#151f1d] hover:from-[#151f1d] hover:to-[#192522] text-white px-8 py-8 text-lg font-semibold shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105">
+                        <Button asChild className="bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-gray-950 text-white px-8 py-3 text-lg font-semibold shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105">
                             <Link href="/login">
                                 <LogIn className="w-5 h-5 mr-2" />
                                 Sign In to Continue
@@ -111,7 +120,10 @@ export default function ScanUrlForm() {
     }
 
     return (
-        <div className="w-full">
+        <div className="w-full relative">
+            {/* Scanning Overlay Component */}
+            <ScanningOverlay isVisible={isLoading} />
+
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex gap-3">
                     <Input
@@ -127,17 +139,8 @@ export default function ScanUrlForm() {
                         type="submit" 
                         disabled={isLoading || !url}
                     >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                Scanning...
-                            </>
-                        ) : (
-                            <>
-                                <FaSearch className="mr-2 h-5 w-5" />
-                                Scan URL
-                            </>
-                        )}
+                        <FaSearch className="mr-2 h-5 w-5" />
+                        Scan URL
                     </Button>
                 </div>
             </form>
@@ -151,7 +154,9 @@ export default function ScanUrlForm() {
             )}
 
             {scanResults && (
-                <div className="mt-12 bg-white rounded-2xl shadow-2xl overflow-hidden text-left" id="scanResultsSection">
+                <div className={`mt-12 bg-white rounded-2xl shadow-2xl text-left ${
+                    showResults ? 'fade-up-enter' : ''
+                }`} id="scanResultsSection">
                     <div className="p-8">
                         <h3 className="text-2xl font-bold mb-6 text-gray-900">Scan Results</h3>
                         
