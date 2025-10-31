@@ -3,37 +3,18 @@
 import React from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
-import { FaFileAlt, FaChartLine, FaCopy } from "react-icons/fa";
-import FullAnalysisModal from "./FullAnalysisModal";
-import SummaryModal from "./SummaryModal";
+import { FaFileAlt, FaChartLine, FaCopy, FaGoogle, FaFacebook, FaChartBar, FaCog, FaLinkedin, FaPinterest, FaMicrosoft, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
+import { MdEmail } from "react-icons/md";
+import { SiKlaviyo } from "react-icons/si";
 import { findServerContainerUrl, extractGtmContainerData } from "@/utils/gtmHelpers";
 
 export default function GtmAnalysis({ scanResults }) {
-    const [selectedAnalysis, setSelectedAnalysis] = React.useState(null);
-    const [selectedSummary, setSelectedSummary] = React.useState(null);
     const [copiedId, setCopiedId] = React.useState(null);
+    const [activeAnalysisTab, setActiveAnalysisTab] = React.useState({});
 
     if (!scanResults || !Array.isArray(scanResults.containerScans)) {
         return <div>No scan results available</div>;
     }
-
-    const openModal = (id) => {
-        const analysis = scanResults.containerScans.find(scan => scan.id === id);
-        setSelectedAnalysis(analysis);
-    };
-
-    const closeModal = () => {
-        setSelectedAnalysis(null);
-    };
-
-    const openSummaryModal = (id) => {
-        const analysis = scanResults.containerScans.find(scan => scan.id === id);
-        setSelectedSummary(analysis);
-    };
-
-    const closeSummaryModal = () => {
-        setSelectedSummary(null);
-    };
 
     const countSafe = (arr) => Array.isArray(arr) ? arr.length : 0;
 
@@ -57,26 +38,333 @@ export default function GtmAnalysis({ scanResults }) {
         try {
             await navigator.clipboard.writeText(containerId);
             setCopiedId(containerId);
-            setTimeout(() => setCopiedId(null), 2000); // Reset after 2 seconds
+            setTimeout(() => setCopiedId(null), 2000);
         } catch (err) {
             console.error('Failed to copy to clipboard:', err);
         }
     };
 
+    const extractGA4Events = (messageData) => {
+        if (!messageData) return [];
+        const events = [];
+        Object.keys(messageData).forEach(key => {
+            const containerData = messageData[key];
+            if (containerData?.entityType === 'GTM Container' && containerData.tags) {
+                containerData.tags.forEach(tag => {
+                    if (tag.type === 'gaawe') {
+                        tag.parameters.forEach(param => {
+                            if (param.key === 'vtp_eventName') {
+                                events.push({
+                                    name: param.value,
+                                    type: 'GA4 Event',
+                                    details: tag,
+                                    triggers: tag.triggers || []
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+        return events;
+    };
+
+    const extractMetaEvents = (messageData) => {
+        if (!messageData) return [];
+        const events = [];
+        Object.keys(messageData).forEach(key => {
+            const containerData = messageData[key];
+            if (containerData?.entityType === 'GTM Container' && containerData.tags) {
+                containerData.tags.forEach(tag => {
+                    if (tag.type === 'cvt_template' || tag.name?.toLowerCase().includes('facebook') ||
+                        tag.name?.toLowerCase().includes('meta') || tag.name?.toLowerCase().includes('pixel')) {
+                        const eventParam = tag.parameters?.find(p =>
+                            p.key === 'vtp_eventName' || p.key === 'eventName' || p.key === 'event'
+                        );
+                        if (eventParam) {
+                            events.push({
+                                name: eventParam.value || 'Unknown Meta Event',
+                                type: 'Meta Pixel Event',
+                                details: tag,
+                                triggers: tag.triggers || []
+                            });
+                        }
+                    }
+                });
+            }
+        });
+        return events;
+    };
+
+    const extractGoogleAdsEvents = (messageData) => {
+        if (!messageData) return [];
+        const events = [];
+        Object.keys(messageData).forEach(key => {
+            const containerData = messageData[key];
+            if (containerData?.entityType === 'GTM Container' && containerData.tags) {
+                containerData.tags.forEach(tag => {
+                    if (tag.type === 'awct' || tag.name?.toLowerCase().includes('google ads') ||
+                        tag.name?.toLowerCase().includes('conversion')) {
+                        events.push({
+                            name: tag.name || 'Google Ads Conversion',
+                            type: 'Google Ads Event',
+                            details: tag,
+                            triggers: tag.triggers || []
+                        });
+                    }
+                });
+            }
+        });
+        return events;
+    };
+
+    const extractLinkedInEvents = (messageData) => {
+        if (!messageData) return [];
+        const events = [];
+        Object.keys(messageData).forEach(key => {
+            const containerData = messageData[key];
+            if (containerData?.entityType === 'GTM Container' && containerData.tags) {
+                containerData.tags.forEach(tag => {
+                    if (tag.type === 'linkedin_insight' || tag.name?.toLowerCase().includes('linkedin') ||
+                        tag.name?.toLowerCase().includes('li_') || tag.name?.toLowerCase().includes('insight')) {
+                        events.push({
+                            name: tag.name || 'LinkedIn Insight Tag',
+                            type: 'LinkedIn Event',
+                            details: tag,
+                            triggers: tag.triggers || []
+                        });
+                    }
+                });
+            }
+        });
+        return events;
+    };
+
+    const extractKlaviyoEvents = (messageData) => {
+        if (!messageData) return [];
+        const events = [];
+        Object.keys(messageData).forEach(key => {
+            const containerData = messageData[key];
+            if (containerData?.entityType === 'GTM Container' && containerData.tags) {
+                containerData.tags.forEach(tag => {
+                    if (tag.type === 'klaviyo' || tag.name?.toLowerCase().includes('klaviyo') ||
+                        tag.name?.toLowerCase().includes('kl_')) {
+                        events.push({
+                            name: tag.name || 'Klaviyo Event',
+                            type: 'Klaviyo Event',
+                            details: tag,
+                            triggers: tag.triggers || []
+                        });
+                    }
+                });
+            }
+        });
+        return events;
+    };
+
+    const extractPinterestEvents = (messageData) => {
+        if (!messageData) return [];
+        const events = [];
+        Object.keys(messageData).forEach(key => {
+            const containerData = messageData[key];
+            if (containerData?.entityType === 'GTM Container' && containerData.tags) {
+                containerData.tags.forEach(tag => {
+                    if (tag.type === 'pinterest_tag' || tag.name?.toLowerCase().includes('pinterest') ||
+                        tag.name?.toLowerCase().includes('pin_')) {
+                        events.push({
+                            name: tag.name || 'Pinterest Tag',
+                            type: 'Pinterest Event',
+                            details: tag,
+                            triggers: tag.triggers || []
+                        });
+                    }
+                });
+            }
+        });
+        return events;
+    };
+
+    const extractMicrosoftEvents = (messageData) => {
+        if (!messageData) return [];
+        const events = [];
+        Object.keys(messageData).forEach(key => {
+            const containerData = messageData[key];
+            if (containerData?.entityType === 'GTM Container' && containerData.tags) {
+                containerData.tags.forEach(tag => {
+                    if (tag.type === 'bing_ads' || tag.type === 'microsoft_ads' || 
+                        tag.name?.toLowerCase().includes('microsoft') ||
+                        tag.name?.toLowerCase().includes('bing') ||
+                        tag.name?.toLowerCase().includes('msft')) {
+                        events.push({
+                            name: tag.name || 'Microsoft Ads Event',
+                            type: 'Microsoft Ads Event',
+                            details: tag,
+                            triggers: tag.triggers || []
+                        });
+                    }
+                });
+            }
+        });
+        return events;
+    };
+
+    const extractOtherTech = (messageData) => {
+        if (!messageData) return [];
+        const events = [];
+        Object.keys(messageData).forEach(key => {
+            const containerData = messageData[key];
+            if (containerData?.entityType === 'GTM Container' && containerData.tags) {
+                containerData.tags.forEach(tag => {
+                    if (tag.type !== 'gaawe' && tag.type !== 'awct' && 
+                        tag.type !== 'linkedin_insight' && tag.type !== 'klaviyo' && 
+                        tag.type !== 'pinterest_tag' && tag.type !== 'bing_ads' && 
+                        tag.type !== 'microsoft_ads' &&
+                        !tag.name?.toLowerCase().includes('facebook') &&
+                        !tag.name?.toLowerCase().includes('meta') &&
+                        !tag.name?.toLowerCase().includes('google ads') &&
+                        !tag.name?.toLowerCase().includes('linkedin') &&
+                        !tag.name?.toLowerCase().includes('klaviyo') &&
+                        !tag.name?.toLowerCase().includes('pinterest') &&
+                        !tag.name?.toLowerCase().includes('microsoft') &&
+                        !tag.name?.toLowerCase().includes('bing')) {
+                        events.push({
+                            name: tag.name || `${tag.type} Tag`,
+                            type: getTagTypeName(tag.type) || 'Other Technology',
+                            details: tag,
+                            triggers: tag.triggers || []
+                        });
+                    }
+                });
+            }
+        });
+        return events;
+    };
+
+    const getTagTypeName = (tagType) => {
+        const tagTypeMap = {
+            'googtag': 'Google Tag',
+            'gclidw': 'Conversion Linker',
+            'html': 'Custom HTML',
+            'img': 'Image Tag',
+            'ua': 'Universal Analytics',
+            'flc': 'Floodlight Counter',
+            'fls': 'Floodlight Sales',
+            'sp': 'Salesforce Pardot',
+            'bzi': 'Bizible',
+            'twitter_website_tag': 'Twitter Pixel',
+            'linkedin_insight': 'LinkedIn Insight Tag',
+            'pinterest_tag': 'Pinterest Tag',
+            'snapchat_ads': 'Snapchat Ads',
+            'tiktok_ads': 'TikTok Ads',
+            'criteo_onetagv2': 'Criteo OneTag',
+            'hotjar': 'Hotjar',
+            'mouseflow': 'Mouseflow',
+            'fullstory': 'FullStory',
+            'crazyegg': 'Crazy Egg',
+            'klaviyo': 'Klaviyo',
+            'klaviyo_pixel': 'Klaviyo Pixel',
+            'bing_ads': 'Microsoft Advertising (Bing)',
+            'microsoft_ads': 'Microsoft Advertising',
+            'msft_uet': 'Microsoft UET Tag',
+            'pinterest_conversion': 'Pinterest Conversion',
+            'pinterest_pixel': 'Pinterest Pixel'
+        };
+        return tagTypeMap[tagType] || tagType;
+    };
+
+    // Summary stats function
+    const getSummaryStats = (messageData) => {
+        if (!messageData) return null;
+
+        const stats = {
+            ga4Events: 0,
+            ga4Streams: 0,
+            metaEvents: 0,
+            googleAdsEvents: 0,
+            linkedinEvents: 0,
+            klaviyoEvents: 0,
+            pinterestEvents: 0,
+            microsoftEvents: 0,
+            otherTech: 0,
+            totalTags: 0,
+            totalTriggers: 0,
+            totalVariables: 0,
+            hasConsentMode: false,
+            isServerSide: false,
+            cmpName: null
+        };
+
+        Object.keys(messageData).forEach(key => {
+            const data = messageData[key];
+
+            if (data?.entityType === 'GA4 Stream') {
+                stats.ga4Streams++;
+            }
+
+            if (data?.entityType === 'GTM Container' && data.tags) {
+                stats.totalTags = data.tags.length;
+                stats.totalTriggers = data.triggers?.length || 0;
+                stats.totalVariables = data.variables?.length || 0;
+                stats.hasConsentMode = data.hasConsentMode || false;
+                stats.isServerSide = data.isServerSide || false;
+                stats.cmpName = data.cmpName || null;
+
+                data.tags.forEach(tag => {
+                    if (tag.type === 'gaawe') stats.ga4Events++;
+                    else if (tag.type === 'awct') stats.googleAdsEvents++;
+                    else if (tag.type === 'linkedin_insight' || tag.name?.toLowerCase().includes('linkedin')) stats.linkedinEvents++;
+                    else if (tag.type === 'klaviyo' || tag.name?.toLowerCase().includes('klaviyo')) stats.klaviyoEvents++;
+                    else if (tag.type === 'pinterest_tag' || tag.name?.toLowerCase().includes('pinterest')) stats.pinterestEvents++;
+                    else if (tag.type === 'bing_ads' || tag.type === 'microsoft_ads' || tag.name?.toLowerCase().includes('microsoft')) stats.microsoftEvents++;
+                    else if (tag.name?.toLowerCase().includes('facebook') || tag.name?.toLowerCase().includes('meta')) stats.metaEvents++;
+                    else stats.otherTech++;
+                });
+            }
+        });
+
+        return stats;
+    };
+
+    // Event card component
+    const EventCard = ({ event, index }) => (
+        <div key={index} className="border rounded-lg p-4 bg-gray-50">
+            <div className="flex justify-between items-start">
+                <div>
+                    <h4 className="font-medium text-lg">{event.name}</h4>
+                    <p className="text-sm text-gray-600">{event.type}</p>
+                    {event.triggers && event.triggers.length > 0 && (
+                        <p className="text-xs text-gray-500 mt-1">
+                            Triggers: {event.triggers.length}
+                        </p>
+                    )}
+                </div>
+                <span className="px-2 py-1 bg-gtm-primary text-white rounded text-xs">
+                    Event
+                </span>
+            </div>
+            {event.details && (
+                <div className="mt-2">
+                    <details className="text-xs">
+                        <summary className="cursor-pointer text-gray-500 hover:text-gtm-primary">View Details</summary>
+                        <pre className="mt-2 bg-white p-2 rounded border overflow-x-auto">
+                            {JSON.stringify(event.details, null, 2)}
+                        </pre>
+                    </details>
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <div className="space-y-4" id="gtmAnalysisResults">
-            <Accordion type="single" collapsible>
+            <Accordion type="single" collapsible defaultValue={scanResults.containerScans[0]?.id || "unknown"}>
                 {scanResults.containerScans.map((cscan) => {
                     const id = cscan?.id || "unknown";
-
                     const body = cscan?.body || {};
                     const payload = body?.payload || {};
-
                     const ok = cscan?.ok ?? body?.ok ?? payload?.ok ?? true;
                     const status = cscan?.status ?? body?.status ?? payload?.status;
-
                     const messageData = parseMessageData(body);
-
                     const containerData = extractGtmContainerData(messageData);
                     const {
                         tags,
@@ -88,7 +376,32 @@ export default function GtmAnalysis({ scanResults }) {
                         serverContainerUrl
                     } = containerData;
 
-                    console.log({ hasConsentMode })
+                    // Extract analysis data
+                    const ga4Events = extractGA4Events(messageData);
+                    const metaEvents = extractMetaEvents(messageData);
+                    const googleAdsEvents = extractGoogleAdsEvents(messageData);
+                    const linkedinEvents = extractLinkedInEvents(messageData);
+                    const klaviyoEvents = extractKlaviyoEvents(messageData);
+                    const pinterestEvents = extractPinterestEvents(messageData);
+                    const microsoftEvents = extractMicrosoftEvents(messageData);
+                    const otherTech = extractOtherTech(messageData);
+
+                    const ga4Streams = messageData ? Object.keys(messageData)
+                        .filter(key => messageData[key]?.entityType === 'GA4 Stream')
+                        .map(key => ({
+                            id: key,
+                            ...messageData[key]
+                        })) : [];
+
+                    const gtmContainers = messageData ? Object.keys(messageData)
+                        .filter(key => messageData[key]?.entityType === 'GTM Container')
+                        .map(key => ({
+                            id: key,
+                            ...messageData[key]
+                        })) : [];
+
+                    // Summary stats
+                    const summaryStats = getSummaryStats(messageData);
 
                     const techList = [];
                     if (Array.isArray(tags)) {
@@ -207,22 +520,354 @@ export default function GtmAnalysis({ scanResults }) {
                                                     )}
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <button
-                                                className="bg-gtm-gradient-start text-white px-4 py-2 rounded-md hover:bg-blue-600 flex items-center gap-2 justify-center col-span-3"
-                                                onClick={() => openModal(id)}
-                                            >
-                                                <FaChartLine className="w-4 h-4" />
-                                                View Full Analysis
-                                            </button>
+                                        {/* Analysis and Summary Accordions */}
+                                        <div className="mb-6">
+                                            <Accordion type="single" collapsible>
+                                                <AccordionItem value="summary">
+                                                    <AccordionTrigger className="text-sm font-medium bg-gray-50 px-4 py-2 rounded-t-lg">
+                                                        <div className="flex items-center gap-2">
+                                                            <FaFileAlt className="w-4 h-4" />
+                                                            Container Summary
+                                                        </div>
+                                                    </AccordionTrigger>
+                                                    <AccordionContent className="border border-t-0 rounded-b-lg p-4">
+                                                        {summaryStats ? (
+                                                            <div className="space-y-6">
+                                                                {/* Overview Stats */}
+                                                                <div className="grid grid-cols-2 gap-4">
+                                                                    <div className="bg-gray-50 p-4 rounded-lg text-center">
+                                                                        <div className="text-2xl font-bold text-gtm-primary">
+                                                                            {summaryStats.ga4Events + summaryStats.metaEvents + summaryStats.googleAdsEvents + 
+                                                                             summaryStats.linkedinEvents + summaryStats.klaviyoEvents + summaryStats.pinterestEvents + 
+                                                                             summaryStats.microsoftEvents + summaryStats.otherTech}
+                                                                        </div>
+                                                                        <div className="text-sm text-gray-600">Total Events</div>
+                                                                    </div>
+                                                                    <div className="bg-gray-50 p-4 rounded-lg text-center">
+                                                                        <div className="text-2xl font-bold text-gtm-secondary">{summaryStats.totalTags}</div>
+                                                                        <div className="text-sm text-gray-600">Tags</div>
+                                                                    </div>
+                                                                    <div className="bg-gray-50 p-4 rounded-lg text-center">
+                                                                        <div className="text-2xl font-bold text-gtm-accent">{summaryStats.totalTriggers}</div>
+                                                                        <div className="text-sm text-gray-600">Triggers</div>
+                                                                    </div>
+                                                                    <div className="bg-gray-50 p-4 rounded-lg text-center">
+                                                                        <div className="text-2xl font-bold text-gtm-primary">{summaryStats.totalVariables}</div>
+                                                                        <div className="text-sm text-gray-600">Variables</div>
+                                                                    </div>
+                                                                </div>
 
-                                            <button
-                                                className="bg-gray-50 cursor-pointer text-black underline px-4 py-2 rounded-md hover:bg-gray-300 flex items-center gap-2 justify-center col-span-3"
-                                                onClick={() => openSummaryModal(id)}
-                                            >
-                                                <FaFileAlt className="w-4 h-4" />
-                                                View Summary
-                                            </button>
+                                                                {/* Configuration Status */}
+                                                                <div>
+                                                                    <h3 className="text-lg font-semibold mb-4">Configuration Status</h3>
+                                                                    <div className="space-y-3">
+                                                                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                                                            {summaryStats.hasConsentMode ? (
+                                                                                <FaCheckCircle className="text-gtm-secondary" />
+                                                                            ) : (
+                                                                                <FaExclamationTriangle className="text-orange-500" />
+                                                                            )}
+                                                                            <span>Consent Mode: {summaryStats.hasConsentMode ? 'Enabled' : 'Disabled'}</span>
+                                                                        </div>
+
+                                                                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                                                            <FaCheckCircle className={summaryStats.isServerSide ? 'text-gtm-secondary' : 'text-gtm-primary'} />
+                                                                            <span>Container Type: {summaryStats.isServerSide ? 'Server-side' : 'Client-side'}</span>
+                                                                        </div>
+
+                                                                        {summaryStats.cmpName && (
+                                                                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                                                                <FaCheckCircle className="text-gtm-secondary" />
+                                                                                <span>CMP: {summaryStats.cmpName}</span>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-gray-500">No summary data available.</p>
+                                                        )}
+                                                    </AccordionContent>
+                                                </AccordionItem>
+
+                                                <AccordionItem value="analysis">
+                                                    <AccordionTrigger className="text-sm font-medium bg-gray-50 px-4 py-2 rounded-t-lg">
+                                                        <div className="flex items-center gap-2">
+                                                            <FaChartLine className="w-4 h-4" />
+                                                            Full Analysis
+                                                        </div>
+                                                    </AccordionTrigger>
+                                                    <AccordionContent className="border border-t-0 rounded-b-lg p-4">
+                                                        <div className="space-y-6">
+                                                            {/* Analysis Tabs */}
+                                                            <div className="border-b">
+                                                                <nav className="flex space-x-4 overflow-x-auto">
+                                                                    {[
+                                                                        { id: 'ga4', label: 'GA4', icon: FaGoogle, count: ga4Events.length + ga4Streams.length, color: 'text-gtm-primary' },
+                                                                        { id: 'meta', label: 'Meta', icon: FaFacebook, count: metaEvents.length, color: 'text-gtm-secondary' },
+                                                                        { id: 'google-ads', label: 'Google Ads', icon: FaChartBar, count: googleAdsEvents.length, color: 'text-gtm-accent' },
+                                                                        { id: 'linkedin', label: 'LinkedIn', icon: FaLinkedin, count: linkedinEvents.length, color: 'text-gtm-primary' },
+                                                                        { id: 'klaviyo', label: 'Klaviyo', icon: MdEmail, count: klaviyoEvents.length, color: 'text-gtm-secondary' },
+                                                                        { id: 'pinterest', label: 'Pinterest', icon: FaPinterest, count: pinterestEvents.length, color: 'text-gtm-accent' },
+                                                                        { id: 'microsoft', label: 'Microsoft', icon: FaMicrosoft, count: microsoftEvents.length, color: 'text-gtm-primary' },
+                                                                        { id: 'other', label: 'Other', icon: FaCog, count: otherTech.length, color: 'text-gray-500' }
+                                                                    ].map((tab) => {
+                                                                        const Icon = tab.icon;
+                                                                        const tabKey = `${id}-${tab.id}`;
+                                                                        const isActive = activeAnalysisTab[id] === tab.id || (!activeAnalysisTab[id] && tab.id === 'ga4');
+                                                                        return (
+                                                                            <button
+                                                                                key={tab.id}
+                                                                                onClick={() => setActiveAnalysisTab(prev => ({ ...prev, [id]: tab.id }))}
+                                                                                className={`flex items-center gap-2 py-4 px-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${isActive
+                                                                                        ? 'border-gtm-primary text-gtm-primary'
+                                                                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                                                                    }`}
+                                                                            >
+                                                                                <Icon className={tab.color} />
+                                                                                {tab.label}
+                                                                                {tab.count > 0 && (
+                                                                                    <span className="bg-gtm-accent text-gray-900 px-2 py-1 rounded-full text-xs font-medium">
+                                                                                        {tab.count}
+                                                                                    </span>
+                                                                                )}
+                                                                            </button>
+                                                                        );
+                                                                    })}
+                                                                </nav>
+                                                            </div>
+
+                                                            {/* Tab Content */}
+                                                            <div className="min-h-[200px]">
+                                                                {(() => {
+                                                                    const activeTab = activeAnalysisTab[id] || 'ga4';
+                                                                    switch (activeTab) {
+                                                                        case 'ga4':
+                                                                            return (
+                                                                                <div className="space-y-6">
+                                                                                    {ga4Events.length > 0 && (
+                                                                                        <div>
+                                                                                            <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                                                                                <FaGoogle className="text-gtm-primary" />
+                                                                                                GA4 Events ({ga4Events.length})
+                                                                                            </h3>
+                                                                                            <div className="grid gap-3">
+                                                                                                {ga4Events.map((event, index) => (
+                                                                                                    <EventCard key={index} event={event} index={index} />
+                                                                                                ))}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {ga4Streams.length > 0 && (
+                                                                                        <div>
+                                                                                            <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                                                                                <FaGoogle className="text-gtm-primary" />
+                                                                                                GA4 Streams ({ga4Streams.length})
+                                                                                            </h3>
+                                                                                            <div className="grid gap-3">
+                                                                                                {ga4Streams.map((stream, index) => (
+                                                                                                    <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                                                                                                        <h4 className="font-medium text-lg">{stream.id}</h4>
+                                                                                                        <p className="text-sm text-gray-600">GA4 Stream</p>
+                                                                                                        <div className="mt-2">
+                                                                                                            <p className="text-xs text-gray-600">
+                                                                                                                Enhanced Measurement: {
+                                                                                                                    stream.enhancedMeasurement?.map(em => em.name).join(', ') || 'None'
+                                                                                                                }
+                                                                                                            </p>
+                                                                                                            {stream.linking && (
+                                                                                                                <p className="text-xs text-gray-600 mt-1">
+                                                                                                                    Linking: {stream.linking.map(l => l.name).join(', ')}
+                                                                                                                </p>
+                                                                                                            )}
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                ))}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {ga4Events.length === 0 && ga4Streams.length === 0 && (
+                                                                                        <div className="text-center py-8 text-gray-500">
+                                                                                            No GA4 events or streams detected
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        case 'meta':
+                                                                            return (
+                                                                                <div className="space-y-6">
+                                                                                    {metaEvents.length > 0 ? (
+                                                                                        <div>
+                                                                                            <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                                                                                <FaFacebook className="text-gtm-secondary" />
+                                                                                                Meta Events ({metaEvents.length})
+                                                                                            </h3>
+                                                                                            <div className="grid gap-3">
+                                                                                                {metaEvents.map((event, index) => (
+                                                                                                    <EventCard key={index} event={event} index={index} />
+                                                                                                ))}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div className="text-center py-8 text-gray-500">
+                                                                                            No Meta Pixel events detected
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        case 'google-ads':
+                                                                            return (
+                                                                                <div className="space-y-6">
+                                                                                    {googleAdsEvents.length > 0 ? (
+                                                                                        <div>
+                                                                                            <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                                                                                <FaChartBar className="text-gtm-accent" />
+                                                                                                Google Ads Events ({googleAdsEvents.length})
+                                                                                            </h3>
+                                                                                            <div className="grid gap-3">
+                                                                                                {googleAdsEvents.map((event, index) => (
+                                                                                                    <EventCard key={index} event={event} index={index} />
+                                                                                                ))}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div className="text-center py-8 text-gray-500">
+                                                                                            No Google Ads conversion events detected
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        case 'linkedin':
+                                                                            return (
+                                                                                <div className="space-y-6">
+                                                                                    {linkedinEvents.length > 0 ? (
+                                                                                        <div>
+                                                                                            <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                                                                                <FaLinkedin className="text-gtm-primary" />
+                                                                                                LinkedIn Events ({linkedinEvents.length})
+                                                                                            </h3>
+                                                                                            <div className="grid gap-3">
+                                                                                                {linkedinEvents.map((event, index) => (
+                                                                                                    <EventCard key={index} event={event} index={index} />
+                                                                                                ))}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div className="text-center py-8 text-gray-500">
+                                                                                            No LinkedIn Insight Tag events detected
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        case 'klaviyo':
+                                                                            return (
+                                                                                <div className="space-y-6">
+                                                                                    {klaviyoEvents.length > 0 ? (
+                                                                                        <div>
+                                                                                            <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                                                                                <MdEmail className="text-gtm-secondary" />
+                                                                                                Klaviyo Events ({klaviyoEvents.length})
+                                                                                            </h3>
+                                                                                            <div className="grid gap-3">
+                                                                                                {klaviyoEvents.map((event, index) => (
+                                                                                                    <EventCard key={index} event={event} index={index} />
+                                                                                                ))}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div className="text-center py-8 text-gray-500">
+                                                                                            No Klaviyo events detected
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        case 'pinterest':
+                                                                            return (
+                                                                                <div className="space-y-6">
+                                                                                    {pinterestEvents.length > 0 ? (
+                                                                                        <div>
+                                                                                            <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                                                                                <FaPinterest className="text-gtm-accent" />
+                                                                                                Pinterest Events ({pinterestEvents.length})
+                                                                                            </h3>
+                                                                                            <div className="grid gap-3">
+                                                                                                {pinterestEvents.map((event, index) => (
+                                                                                                    <EventCard key={index} event={event} index={index} />
+                                                                                                ))}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div className="text-center py-8 text-gray-500">
+                                                                                            No Pinterest Tag events detected
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        case 'microsoft':
+                                                                            return (
+                                                                                <div className="space-y-6">
+                                                                                    {microsoftEvents.length > 0 ? (
+                                                                                        <div>
+                                                                                            <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                                                                                <FaMicrosoft className="text-gtm-primary" />
+                                                                                                Microsoft Ads Events ({microsoftEvents.length})
+                                                                                            </h3>
+                                                                                            <div className="grid gap-3">
+                                                                                                {microsoftEvents.map((event, index) => (
+                                                                                                    <EventCard key={index} event={event} index={index} />
+                                                                                                ))}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div className="text-center py-8 text-gray-500">
+                                                                                            No Microsoft Advertising events detected
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        case 'other':
+                                                                            return (
+                                                                                <div className="space-y-6">
+                                                                                    {otherTech.length > 0 ? (
+                                                                                        <div>
+                                                                                            <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                                                                                                <FaCog className="text-gray-500" />
+                                                                                                Other Technologies ({otherTech.length})
+                                                                                            </h3>
+                                                                                            <div className="grid gap-3">
+                                                                                                {otherTech.map((event, index) => (
+                                                                                                    <EventCard key={index} event={event} index={index} />
+                                                                                                ))}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div className="text-center py-8 text-gray-500">
+                                                                                            No other marketing technologies detected
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        default:
+                                                                            return null;
+                                                                    }
+                                                                })()}
+                                                            </div>
+
+                                                            {/* Raw Data Section */}
+                                                            <div className="border-t pt-4">
+                                                                <details className="text-sm">
+                                                                    <summary className="cursor-pointer font-medium text-gray-600 hover:text-gtm-primary">Raw Analysis Data</summary>
+                                                                    <pre className="mt-2 bg-white p-4 rounded border overflow-x-auto text-xs max-h-48">
+                                                                        {JSON.stringify(body, null, 2)}
+                                                                    </pre>
+                                                                </details>
+                                                            </div>
+                                                        </div>
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            </Accordion>
                                         </div>
 
                                         <div className="space-y-4">
@@ -294,19 +939,6 @@ export default function GtmAnalysis({ scanResults }) {
                     );
                 })}
             </Accordion>
-
-            <FullAnalysisModal
-                isOpen={!!selectedAnalysis}
-                onClose={closeModal}
-                analysisData={selectedAnalysis?.body}
-            />
-
-            <SummaryModal
-                isOpen={!!selectedSummary}
-                onClose={closeSummaryModal}
-                analysisData={selectedSummary?.body}
-                containerId={selectedSummary?.id}
-            />
         </div>
     );
 }
