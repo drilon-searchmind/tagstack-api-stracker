@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, User, Shield, Mail, Calendar } from "lucide-react";
 import ScanUrlForm from "@/components/forms/ScanUrlForm";
+import CustomerTable from "@/components/ui/CustomerTable";
 
 export default function DashboardPage() {
     const { data: session, status } = useSession();
@@ -40,7 +41,7 @@ export default function DashboardPage() {
             <div className="absolute inset-0 login-bg-gradient opacity-30"></div>
             <div className="dots-pattern absolute inset-0 opacity-10"></div>
             
-            <div className="max-w-[var(--max-width-desktop)] mx-auto py-8 relative z-10 pt-40">
+            <div className="max-w-[var(--max-width-desktop)] mx-auto py-8 relative z-10 pt-40" id="dashboard-page">
                 <div className="mb-8">
                     <Card className="glass-morph border-white/30 shadow-2xl">
                         <CardHeader className="pb-4">
@@ -82,6 +83,11 @@ export default function DashboardPage() {
                             </div>
                         </CardContent>
                     </Card>
+                </div>
+
+                {/* Customer Table Section */}
+                <div className="mb-8">
+                    <CustomerTable />
                 </div>
             </div>
         </div>
