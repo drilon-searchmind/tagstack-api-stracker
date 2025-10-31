@@ -7,7 +7,7 @@ export default function ScanningOverlay({ isVisible }) {
         <div className={`fixed inset-0 z-50 transition-all duration-700 ease-in-out transform ${
             isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 pointer-events-none'
         }`}>
-            <div className="absolute inset-0 scanning-overlay-bg"></div>
+            <div className="absolute inset-0 scanning-overlay-bg opacity-95"></div>
             <div className="dots-pattern absolute inset-0 opacity-10"></div>
             
             <div className="relative z-10 flex items-center justify-center min-h-screen">
