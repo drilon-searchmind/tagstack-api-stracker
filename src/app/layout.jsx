@@ -1,6 +1,7 @@
 import { Fustat } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
+import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 
 export const metadata = {
     title: "Searchmind Omnipixel URL Scanner",
@@ -18,10 +19,12 @@ export default function RootLayout({ children }) {
     return (
         <html lang="en">
             <body className={`${fustat.variable} antialiased`}>
-                <Header />
-                <main className="relative">
-                    {children}
-                </main>
+                <SessionProviderWrapper>
+                    <Header />
+                    <main className="relative">
+                        {children}
+                    </main>
+                </SessionProviderWrapper>
             </body>
         </html>
     );

@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock, LogIn } from "lucide-react";
 import GtmAnalysis from "@/components/analysis/GtmAnalysis";
 import { FaSearch } from "react-icons/fa";
+import Link from "next/link";
 
 export default function ScanUrlForm() {
+    const { data: session, status } = useSession();
     const [url, setUrl] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [scanResults, setScanResults] = useState(null);
@@ -17,7 +20,7 @@ export default function ScanUrlForm() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!url) return;
+        if (!url || !session) return;
 
         setIsLoading(true);
         setError(null);
@@ -69,6 +72,43 @@ export default function ScanUrlForm() {
             setIsLoading(false);
         }
     };
+
+    if (status === "loading") {
+        return (
+            <div className="w-full">
+                <div className="flex items-center justify-center p-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                    <span className="ml-2 text-gray-600">Loading...</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (!session) {
+        return (
+            <div className="w-full">
+                <Card className="glass-morph border-white/30 shadow-2xl">
+                    <CardContent className="p-8 text-center">
+                        <div className="flex justify-center mb-4">
+                            <div className="w-16 h-16 bg-gradient-to-br from-[#192522] to-[#151f1d] rounded-full flex items-center justify-center">
+                                <Lock className="w-8 h-8 text-white" />
+                            </div>
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-50 mb-4">Authentication Required</h3>
+                        <p className="text-gray-200 mb-6 text-lg">
+                            You must be signed in to use the GTM Container Scanner. Please log in to access this feature.
+                        </p>
+                        <Button asChild className="bg-gradient-to-r from-[#192522] to-[#151f1d] hover:from-[#151f1d] hover:to-[#192522] text-white px-8 py-8 text-lg font-semibold shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105">
+                            <Link href="/login">
+                                <LogIn className="w-5 h-5 mr-2" />
+                                Sign In to Continue
+                            </Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full">
