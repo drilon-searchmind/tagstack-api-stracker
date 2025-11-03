@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, ExternalLink, Calendar, Globe, Users, User, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
 import AddCustomerForm from "@/components/forms/AddCustomerForm";
+import { useRouter } from "next/navigation";
 
 export default function CustomerTable() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -13,6 +14,7 @@ export default function CustomerTable() {
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const router = useRouter();
 
     useEffect(() => {
         fetchCustomers();
@@ -258,15 +260,18 @@ export default function CustomerTable() {
                                                     variant="outline" 
                                                     size="sm"
                                                     className="text-gray-600 hover:text-gray-900 border-gray-300 hover:border-gray-400 hover:bg-white/80"
+                                                    onClick={() => {
+                                                        const customerUrl = encodeURIComponent(customer.url);
+                                                        const customerId = customer._id;
+                                                        router.push(`/?customer-url=${customerUrl}&customer-id=${customerId}`);
+                                                    }}
                                                 >
                                                     Scan Now
                                                 </Button>
                                                 <Button 
                                                     size="sm"
                                                     className="bg-gtm-gradient hover:opacity-90 text-white"
-                                                    onClick={() => {
-                                                        console.log('View customer:', customer._id);
-                                                    }}
+                                                    onClick={() => router.push(`/dashboard/customer/${customer._id}`)}
                                                 >
                                                     View Details
                                                 </Button>
