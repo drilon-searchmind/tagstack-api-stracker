@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import SummaryModal from "@/components/analysis/SummaryModal";
 import AuthRequired from "@/components/ui/AuthRequired";
 import { FaSearch } from "react-icons/fa";
 
-export default function ScanUrlForm() {
+function ScanUrlFormContent() {
     const { data: session, status } = useSession();
     const searchParams = useSearchParams();
     const [url, setUrl] = useState("");
@@ -180,7 +180,6 @@ export default function ScanUrlForm() {
 
     return (
         <div className="w-full relative">
-            {/* Scanning Overlay Component */}
             <ScanningOverlay isVisible={isLoading} />
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -245,5 +244,24 @@ export default function ScanUrlForm() {
                 </div>
             )}
         </div>
+    );
+}
+
+function ScanUrlFormFallback() {
+    return (
+        <div className="w-full">
+            <div className="flex items-center justify-center p-8">
+                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                <span className="ml-2 text-gray-600">Loading scan form...</span>
+            </div>
+        </div>
+    );
+}
+
+export default function ScanUrlForm() {
+    return (
+        <Suspense fallback={<ScanUrlFormFallback />}>
+            <ScanUrlFormContent />
+        </Suspense>
     );
 }

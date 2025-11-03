@@ -18,6 +18,7 @@ export default function CustomerDetailPage({ params }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [customerId, setCustomerId] = useState(null);
+    const [hasFetched, setHasFetched] = useState(false);
 
     useEffect(() => {
         const initializeParams = async () => {
@@ -40,6 +41,7 @@ export default function CustomerDetailPage({ params }) {
             }
             
             setCustomer(data.customer);
+            setHasFetched(true);
         } catch (error) {
             setError(error.message);
             console.error('Error fetching customer:', error);
@@ -49,13 +51,13 @@ export default function CustomerDetailPage({ params }) {
     }, [customerId]);
 
     useEffect(() => {
-        if (status === "loading" || !customerId) return;
+        if (status === "loading" || !customerId || hasFetched) return;
         if (!session) {
             router.push("/login");
             return;
         }
         fetchCustomer();
-    }, [session, status, customerId, fetchCustomer]);
+    }, [session, status, customerId, hasFetched]);
 
     const handleCustomerUpdate = (updatedCustomer) => {
         setCustomer(updatedCustomer);
