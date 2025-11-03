@@ -186,7 +186,7 @@ function ScanUrlFormContent() {
             <ScanningOverlay isVisible={isLoading} />
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="flex gap-3">
+                <div className="flex gap-3 gradient-box">
                     <Input
                         type="text"
                         placeholder="Enter URL (e.g. example.com)"
