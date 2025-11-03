@@ -25,6 +25,7 @@ function ScanUrlFormContent() {
     const [showResults, setShowResults] = useState(false);
     const [customerId, setCustomerId] = useState(null);
     const [scanStartTime, setScanStartTime] = useState(null);
+    const [hasScanned, setHasScanned] = useState(false);
 
     useEffect(() => {
         const customerUrl = searchParams.get('customer-url');
@@ -38,12 +39,13 @@ function ScanUrlFormContent() {
             setCustomerId(customerIdParam);
         }
         
-        if (customerUrl && customerIdParam && session) {
+        // Only auto-scan if we haven't scanned yet and have the required parameters
+        if (customerUrl && customerIdParam && session && !hasScanned) {
             setTimeout(() => {
                 handleSubmit(null, decodeURIComponent(customerUrl), customerIdParam);
             }, 500);
         }
-    }, [searchParams, session]);
+    }, [searchParams, session, hasScanned]);
 
     const saveScanToDatabase = async (scanData, customerId, duration) => {
         if (!customerId || !session) return;
@@ -101,6 +103,7 @@ function ScanUrlFormContent() {
         setScanResults(null);
         setGtmContainers([]);
         setShowResults(false);
+        setHasScanned(true); // Set this flag to prevent auto-scan repetition
         const startTime = Date.now(); // Fix: Move this to the correct location
 
         try {

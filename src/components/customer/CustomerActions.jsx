@@ -1,48 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Trash2, Edit, RefreshCw, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 
 export default function CustomerActions({ customer, onUpdate }) {
-    const [isScanning, setIsScanning] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [scanMessage, setScanMessage] = useState("");
+    const router = useRouter();
 
-    const handleScan = async () => {
-        setIsScanning(true);
-        setScanMessage("");
-        
-        try {
-            const response = await fetch('/api/gtm-scan', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    url: customer.url,
-                    customerId: customer._id
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Scan failed');
-            }
-
-            setScanMessage(`Scan completed! Found ${data.containerCount || 0} GTM containers.`);
-            
-            if (onUpdate && data.customer) {
-                onUpdate(data.customer);
-            }
-
-        } catch (error) {
-            setScanMessage(`Scan failed: ${error.message}`);
-        } finally {
-            setIsScanning(false);
-        }
+    const handleScan = () => {
+        const customerUrl = encodeURIComponent(customer.url);
+        const customerId = customer._id;
+        router.push(`/?customer-url=${customerUrl}&customer-id=${customerId}`);
     };
 
     const handleDelete = async () => {
@@ -62,7 +33,7 @@ export default function CustomerActions({ customer, onUpdate }) {
                 throw new Error(data.error || 'Failed to delete customer');
             }
 
-            window.location.href = '/dashboard';
+            router.push('/dashboard');
 
         } catch (error) {
             alert(`Failed to delete customer: ${error.message}`);
@@ -82,36 +53,11 @@ export default function CustomerActions({ customer, onUpdate }) {
             <CardContent className="space-y-4">
                 <Button 
                     onClick={handleScan}
-                    disabled={isScanning}
                     className="w-full bg-gtm-gradient hover:opacity-90 text-white"
                 >
-                    {isScanning ? (
-                        <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Scanning...
-                        </>
-                    ) : (
-                        <>
-                            <RefreshCw className="w-4 h-4 mr-2" />
-                            Run GTM Scan
-                        </>
-                    )}
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Run GTM Scan
                 </Button>
-
-                {scanMessage && (
-                    <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
-                        scanMessage.includes('failed') 
-                            ? 'bg-red-50 border border-red-200 text-red-700' 
-                            : 'bg-green-50 border border-green-200 text-green-700'
-                    }`}>
-                        {scanMessage.includes('failed') ? (
-                            <AlertCircle className="w-4 h-4" />
-                        ) : (
-                            <CheckCircle className="w-4 h-4" />
-                        )}
-                        {scanMessage}
-                    </div>
-                )}
 
                 <div className="grid grid-cols-2 gap-3">
                     <Button 
