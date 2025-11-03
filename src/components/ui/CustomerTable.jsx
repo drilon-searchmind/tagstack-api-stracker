@@ -1,64 +1,57 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ExternalLink, Calendar, Globe, Users, User, TrendingUp, AlertCircle } from "lucide-react";
-
-// Mock data for demonstration - replace with real data later
-const mockCustomers = [
-    {
-        id: 1,
-        name: "Acme Corporation",
-        url: "https://www.acme.com",
-        lastScan: "2024-10-30",
-        status: "active",
-        containerCount: 2,
-        issuesFound: 0,
-        addedDate: "2024-09-15"
-    },
-    {
-        id: 2,
-        name: "TechStart Solutions",
-        url: "https://techstart.io",
-        lastScan: "2024-10-28",
-        status: "active",
-        containerCount: 1,
-        issuesFound: 3,
-        addedDate: "2024-10-01"
-    },
-    {
-        id: 3,
-        name: "E-commerce Plus",
-        url: "https://ecommerceplus.shop",
-        lastScan: null,
-        status: "pending",
-        containerCount: 0,
-        issuesFound: 0,
-        addedDate: "2024-10-29"
-    },
-    {
-        id: 4,
-        name: "Digital Marketing Hub",
-        url: "https://digitalmarketing.com",
-        lastScan: "2024-10-25",
-        status: "active",
-        containerCount: 3,
-        issuesFound: 1,
-        addedDate: "2024-08-20"
-    }
-];
+import { Search, ExternalLink, Calendar, Globe, Users, User, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
+import AddCustomerForm from "@/components/forms/AddCustomerForm";
 
 export default function CustomerTable() {
     const [searchTerm, setSearchTerm] = useState("");
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [customers, setCustomers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        fetchCustomers();
+    }, []);
+
+    const fetchCustomers = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/customer');
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to fetch customers');
+            }
+            
+            setCustomers(data.customers || []);
+        } catch (error) {
+            setError(error.message);
+            console.error('Error fetching customers:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCustomerAdded = (newCustomer) => {
+        setCustomers(prev => [newCustomer, ...prev]);
+        setShowAddForm(false);
+    };
+
+    const handleToggleView = () => {
+        setShowAddForm(!showAddForm);
+    };
 
     const filteredCustomers = useMemo(() => {
-        return mockCustomers.filter(customer =>
+        return customers.filter(customer =>
             customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             customer.url.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [searchTerm]);
+    }, [customers, searchTerm]);
 
     const formatDate = (dateString) => {
         if (!dateString) return "Never";
@@ -84,22 +77,61 @@ export default function CustomerTable() {
         );
     };
 
-    const getIssuesBadge = (issuesCount) => {
-        if (issuesCount === 0) {
+    const getIssuesBadge = (isMonitored) => {
+        if (isMonitored === true) {
             return (
                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 flex items-center gap-1">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    No Issues
+                    Monitored
                 </span>
             );
         }
         return (
             <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />
-                {issuesCount} Issue{issuesCount !== 1 ? 's' : ''}
+                Not Monitored
             </span>
         );
     };
+
+    if (showAddForm) {
+        return (
+            <AddCustomerForm 
+                onCustomerAdded={handleCustomerAdded}
+                onCancel={handleToggleView}
+            />
+        );
+    }
+
+    if (loading) {
+        return (
+            <Card className="border-white/30 shadow-2xl bg-zinc-100">
+                <CardContent className="py-12">
+                    <div className="flex items-center justify-center">
+                        <Loader2 className="w-8 h-8 animate-spin text-gray-600 mr-3" />
+                        <span className="text-lg text-gray-700">Loading customers...</span>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (error) {
+        return (
+            <Card className="border-white/30 shadow-2xl bg-zinc-100">
+                <CardContent className="py-12">
+                    <div className="text-center">
+                        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Customers</h3>
+                        <p className="text-gray-600 mb-4">{error}</p>
+                        <Button onClick={fetchCustomers} className="bg-gtm-gradient hover:opacity-90 text-white">
+                            Try Again
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
 
     return (
         <Card className="border-white/30 shadow-2xl bg-zinc-100">
@@ -126,7 +158,10 @@ export default function CustomerTable() {
                                 className="pl-10 w-64 bg-white/80 border-white/30"
                             />
                         </div>
-                        <Button className="bg-gtm-gradient hover:opacity-90 text-white">
+                        <Button 
+                            onClick={handleToggleView}
+                            className="bg-gtm-gradient hover:opacity-90 text-white"
+                        >
                             Add Customer
                         </Button>
                     </div>
@@ -146,7 +181,10 @@ export default function CustomerTable() {
                             }
                         </p>
                         {!searchTerm && (
-                            <Button className="bg-gtm-gradient hover:opacity-90 text-white">
+                            <Button 
+                                onClick={handleToggleView}
+                                className="bg-gtm-gradient hover:opacity-90 text-white"
+                            >
                                 Add Your First Customer
                             </Button>
                         )}
@@ -160,14 +198,14 @@ export default function CustomerTable() {
                                     <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
                                     <th className="text-left py-3 px-4 font-medium text-gray-900">Containers</th>
                                     <th className="text-left py-3 px-4 font-medium text-gray-900">Last Scan</th>
-                                    <th className="text-left py-3 px-4 font-medium text-gray-900">Issues</th>
+                                    <th className="text-left py-3 px-4 font-medium text-gray-900">Monitored</th>
                                     <th className="text-left py-3 px-4 font-medium text-gray-900">Added</th>
                                     <th className="text-right py-3 px-4 font-medium text-gray-900">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredCustomers.map((customer) => (
-                                    <tr key={customer.id} className="border-b border-gray-100 hover:bg-white/50 transition-colors">
+                                    <tr key={customer._id} className="border-b border-gray-100 hover:bg-white/50 transition-colors">
                                         <td className="py-4 px-4">
                                             <div className="flex items-center space-x-3">
                                                 <div className="w-8 h-8 bg-gtm-gradient-end rounded-full flex items-center justify-center">
@@ -207,11 +245,11 @@ export default function CustomerTable() {
                                             </div>
                                         </td>
                                         <td className="py-4 px-4">
-                                            {getIssuesBadge(customer.issuesFound)}
+                                            {getIssuesBadge(customer.isMonitored)}
                                         </td>
                                         <td className="py-4 px-4">
                                             <span className="text-sm text-gray-600">
-                                                {formatDate(customer.addedDate)}
+                                                {formatDate(customer.addedDate || customer.createdAt)}
                                             </span>
                                         </td>
                                         <td className="py-4 px-4 text-right">
@@ -227,8 +265,7 @@ export default function CustomerTable() {
                                                     size="sm"
                                                     className="bg-gtm-gradient hover:opacity-90 text-white"
                                                     onClick={() => {
-                                                        // TODO: Navigate to customer details
-                                                        console.log('View customer:', customer.id);
+                                                        console.log('View customer:', customer._id);
                                                     }}
                                                 >
                                                     View Details
@@ -242,7 +279,6 @@ export default function CustomerTable() {
                     </div>
                 )}
 
-                {/* Summary Stats */}
                 {filteredCustomers.length > 0 && (
                     <div className="mt-6 pt-6 border-t border-gray-200">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -266,9 +302,9 @@ export default function CustomerTable() {
                             </div>
                             <div className="text-center p-4 bg-white/50 rounded-lg border border-white/30">
                                 <div className="text-2xl font-bold" style={{ color: '#dc2626' }}>
-                                    {filteredCustomers.reduce((sum, c) => sum + c.issuesFound, 0)}
+                                    {filteredCustomers.reduce((sum, c) => sum + (c.isMonitored ? 1 : 0), 0)} / {filteredCustomers.length}
                                 </div>
-                                <div className="text-sm text-gray-600">Total Issues</div>
+                                <div className="text-sm text-gray-600">Total Monitored</div>
                             </div>
                         </div>
                     </div>
