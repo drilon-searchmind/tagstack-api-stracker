@@ -60,7 +60,8 @@ export default function CustomerScanHistory({ customer, onUpdate }) {
     };
 
     const handleViewScan = (scan) => {
-        setSelectedScan(selectedScan?._id === scan._id ? null : scan);
+        // Navigate to the scan results detail page
+        window.open(`/dashboard/customer/${customer._id}/scan-results/${scan._id}`, '');
     };
 
     const displayedScans = showAll ? scanHistory : scanHistory.slice(0, 5);

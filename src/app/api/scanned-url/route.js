@@ -100,40 +100,39 @@ export async function POST(request) {
 export async function GET(request) {
     try {
         const session = await getServerSession(authOptions);
-        
-        if (!session || !session.user) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
-
-        const { searchParams } = new URL(request.url);
-        const customerId = searchParams.get('customerId');
-        const limit = parseInt(searchParams.get('limit') || '10');
 
         await connectDB();
 
-        let scans;
-        if (customerId) {
-            const customer = await Customer.findOne({
-                _id: customerId,
-                userId: session.user.id
-            });
+        const { searchParams } = new URL(request.url);
+        const customerId = searchParams.get('customerId');
+        const limit = parseInt(searchParams.get('limit')) || 10;
 
-            if (!customer) {
-                return NextResponse.json(
-                    { error: 'Customer not found or access denied' },
-                    { status: 404 }
-                );
-            }
-
-            scans = await ScannedUrl.findByCustomerId(customerId, limit);
-        } else {
-            scans = await ScannedUrl.findByUserId(session.user.id, limit);
+        if (!customerId) {
+            return NextResponse.json({ error: 'Customer ID is required' }, { status: 400 });
         }
 
-        return NextResponse.json({ scans });
+        // Verify customer belongs to user
+        const customer = await Customer.findOne({
+            _id: customerId,
+            userId: session.user.id
+        });
+
+        if (!customer) {
+            return NextResponse.json({ error: 'Customer not found or access denied' }, { status: 404 });
+        }
+
+        const scans = await ScannedUrl.find({ customerId })
+            .sort({ scanDate: -1 })
+            .limit(limit)
+            .lean();
+
+        return NextResponse.json({
+            success: true,
+            scans
+        });
 
     } catch (error) {
         console.error('Error fetching scans:', error);
