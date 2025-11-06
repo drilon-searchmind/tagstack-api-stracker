@@ -34,6 +34,9 @@ export default function Header() {
                             className="mr-1"
                         />
                         Omnipixel
+                        <span className="ml-2 px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-lg">
+                            v 0.2 beta
+                        </span>
                     </Link>
 
                     {/* Desktop Navigation */}
