@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,27 +14,100 @@ import SummaryModal from "@/components/analysis/SummaryModal";
 import AuthRequired from "@/components/ui/AuthRequired";
 import { FaSearch } from "react-icons/fa";
 
-export default function ScanUrlForm() {
+function ScanUrlFormContent() {
     const { data: session, status } = useSession();
+    const searchParams = useSearchParams();
     const [url, setUrl] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [scanResults, setScanResults] = useState(null);
     const [error, setError] = useState(null);
     const [gtmContainers, setGtmContainers] = useState([]);
     const [showResults, setShowResults] = useState(false);
+    const [customerId, setCustomerId] = useState(null);
+    const [scanStartTime, setScanStartTime] = useState(null);
+    const [hasScanned, setHasScanned] = useState(false);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!url || !session) return;
+    useEffect(() => {
+        const customerUrl = searchParams.get('customer-url');
+        const customerIdParam = searchParams.get('customer-id');
+        
+        if (customerUrl) {
+            setUrl(decodeURIComponent(customerUrl));
+        }
+        
+        if (customerIdParam) {
+            setCustomerId(customerIdParam);
+        }
+        
+        // Only auto-scan if we haven't scanned yet and have the required parameters
+        if (customerUrl && customerIdParam && session && !hasScanned) {
+            setTimeout(() => {
+                handleSubmit(null, decodeURIComponent(customerUrl), customerIdParam);
+            }, 500);
+        }
+    }, [searchParams, session, hasScanned]);
+
+    const saveScanToDatabase = async (scanData, customerId, duration) => {
+        if (!customerId || !session) return;
+
+        console.log('=== DEBUG: Scan data being sent to API ===');
+        console.log('customerId:', customerId);
+        console.log('requestedUrl:', scanData.requestedUrl);
+        console.log('gtmScan:', scanData.gtmScan);
+        console.log('containers:', scanData.containers);
+        console.log('containers type:', typeof scanData.containers);
+        console.log('containers JSON:', JSON.stringify(scanData.containers, null, 2));
+        console.log('containerScans:', scanData.containerScans);
+        console.log('containerScans type:', typeof scanData.containerScans);
+        console.log('containerScans JSON:', JSON.stringify(scanData.containerScans, null, 2));
+        console.log('scanDuration:', duration);
+        console.log('=== END DEBUG ===');
+
+        try {
+            const response = await fetch('/api/scanned-url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    customerId,
+                    requestedUrl: scanData.requestedUrl,
+                    gtmScan: scanData.gtmScan,
+                    containers: scanData.containers,
+                    containerScans: scanData.containerScans,
+                    scanDuration: duration
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Failed to save scan:', errorData.error);
+            } else {
+                console.log('Scan saved successfully');
+            }
+        } catch (error) {
+            console.error('Error saving scan:', error);
+        }
+    };
+
+    const handleSubmit = async (e, urlOverride = null, customerIdOverride = null) => {
+        if (e) e.preventDefault();
+        
+        const scanUrl = urlOverride || url;
+        const scanCustomerId = customerIdOverride || customerId;
+        
+        if (!scanUrl || !session) return;
 
         setIsLoading(true);
         setError(null);
         setScanResults(null);
         setGtmContainers([]);
         setShowResults(false);
+        setHasScanned(true); // Set this flag to prevent auto-scan repetition
+        const startTime = Date.now(); // Fix: Move this to the correct location
 
         try {
-            const respGtm = await fetch(`/api/gtm-scan-id?url=${encodeURIComponent(url)}`);
+            const respGtm = await fetch(`/api/gtm-scan-id?url=${encodeURIComponent(scanUrl)}`);
             const gtmJson = await respGtm.json();
             if (!respGtm.ok) throw new Error(gtmJson.message || gtmJson.error || JSON.stringify(gtmJson));
 
@@ -64,12 +138,20 @@ export default function ScanUrlForm() {
                 })
             );
 
-            setScanResults({
-                requestedUrl: url,
+            const scanDuration = Date.now() - startTime; // Fix: Use the correct start time
+            const finalScanResults = {
+                requestedUrl: scanUrl,
                 gtmScan: gtmJson,
                 containers,
                 containerScans
-            });
+            };
+
+            setScanResults(finalScanResults);
+
+            if (scanCustomerId) {
+                await saveScanToDatabase(finalScanResults, scanCustomerId, scanDuration);
+            }
+
         } catch (err) {
             console.error("Error scanning URL:", err);
             setError(err.message || String(err));
@@ -101,11 +183,10 @@ export default function ScanUrlForm() {
 
     return (
         <div className="w-full relative">
-            {/* Scanning Overlay Component */}
             <ScanningOverlay isVisible={isLoading} />
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="flex gap-3">
+                <div className="flex gap-3 gradient-box">
                     <Input
                         type="text"
                         placeholder="Enter URL (e.g. example.com)"
@@ -166,5 +247,24 @@ export default function ScanUrlForm() {
                 </div>
             )}
         </div>
+    );
+}
+
+function ScanUrlFormFallback() {
+    return (
+        <div className="w-full">
+            <div className="flex items-center justify-center p-8">
+                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                <span className="ml-2 text-gray-600">Loading scan form...</span>
+            </div>
+        </div>
+    );
+}
+
+export default function ScanUrlForm() {
+    return (
+        <Suspense fallback={<ScanUrlFormFallback />}>
+            <ScanUrlFormContent />
+        </Suspense>
     );
 }
