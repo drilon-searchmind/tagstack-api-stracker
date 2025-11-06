@@ -1,0 +1,215 @@
+{
+    "_id": {
+      "$oid": "6908b5893617a9a63143ada5"
+    },
+    "userId": {
+      "$oid": "69048c9c516021f7dd0b3034"
+    },
+    "customerId": {
+      "$oid": "69087f4c3f673ad6370e40f3"
+    },
+    "requestedUrl": "https://pompdelux.dk/",
+    "scanData": {
+      "gtmScan": {
+        "success": true,
+        "url": "https://pompdelux.dk/",
+        "scanTimestamp": "2025-11-03T14:00:26.427Z",
+        "containers": [
+          {
+            "id": "GTM-WP9Q2FZV"
+          }
+        ],
+        "detectionMethods": [
+          "dataLayer.push calls detected",
+          "Google-related meta tag found",
+          "Google-related meta tag found",
+          "Additional container IDs found: gtm-18",
+          "Shopify site detected - checking for GTM",
+          "Shopify analytics/tracking detected (likely GTM-powered)",
+          "Shopify dynamic GTM loading scripts detected",
+          "Shopify e-commerce tracking detected (indicates GTM/GA presence)",
+          "Note: Actual GTM container ID may be loaded dynamically by Shopify apps",
+          "Stape server-side GTM widget detected",
+          "Fetching Stape widget: https://cdn.shopify.com/extensions/1c06ce32-d408-4...",
+          "Stape GTM block found: 7e13c847-7971-409d-8fe0-29ec14d5f048",
+          "Server-side GTM container detected - ID loaded dynamically at runtime",
+          "Known Stape GTM container ID (GTM-WP9Q2FZV) - verified server-side implementation"
+        ],
+        "dataLayerEvents": [],
+        "scripts": [
+          "src=\"https://cdn.shopify.com/extensions/1c06ce32-d408-497e-9451-51d95cd36322/stape-server-gtm-18/assets/widget.js\""
+        ],
+        "rawTracer": {
+          "isGTMPresent": true,
+          "containerIDs": [
+            "GTM-WP9Q2FZV"
+          ],
+          "detectionMethods": [
+            "dataLayer.push calls detected",
+            "Google-related meta tag found",
+            "Google-related meta tag found",
+            "Additional container IDs found: gtm-18",
+            "Shopify site detected - checking for GTM",
+            "Shopify analytics/tracking detected (likely GTM-powered)",
+            "Shopify dynamic GTM loading scripts detected",
+            "Shopify e-commerce tracking detected (indicates GTM/GA presence)",
+            "Note: Actual GTM container ID may be loaded dynamically by Shopify apps",
+            "Stape server-side GTM widget detected",
+            "Fetching Stape widget: https://cdn.shopify.com/extensions/1c06ce32-d408-4...",
+            "Stape GTM block found: 7e13c847-7971-409d-8fe0-29ec14d5f048",
+            "Server-side GTM container detected - ID loaded dynamically at runtime",
+            "Known Stape GTM container ID (GTM-WP9Q2FZV) - verified server-side implementation"
+          ],
+          "dataLayerEvents": [],
+          "scriptsFound": [
+            "src=\"https://cdn.shopify.com/extensions/1c06ce32-d408-497e-9451-51d95cd36322/stape-server-gtm-18/assets/widget.js\""
+          ],
+          "networkRequests": []
+        }
+      },
+      "containers": [
+        {
+          "id": "GTM-WP9Q2FZV"
+        }
+      ],
+      "containerScans": [
+        {
+          "id": "GTM-WP9Q2FZV",
+          "ok": true,
+          "status": 200,
+          "body": {
+            "success": true,
+            "message": "{\"G-V7ZTDN78DW\":{\"entityType\":\"GA4 Stream\",\"enhancedMeasurement\":[{\"name\":\"Outbound Click\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Pageview\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Scroll\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Site Search\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]}],\"linking\":[{\"name\":\"Google Ads Linking\",\"type\":\"Linking\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]}]},\"G-HNXSBKHFJ6\":{\"entityType\":\"GA4 Stream\",\"enhancedMeasurement\":[{\"name\":\"Outbound Click\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Pageview\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Scroll\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Site Search\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]}]},\"G-Q3143NKCC8\":{\"entityType\":\"GA4 Stream\",\"enhancedMeasurement\":[{\"name\":\"Outbound Click\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Pageview\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Scroll\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Site Search\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]}],\"linking\":[{\"name\":\"Google Ads Linking\",\"type\":\"Linking\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]}]},\"G-DBYJP4WYGX\":{\"entityType\":\"GA4 Stream\",\"enhancedMeasurement\":[{\"name\":\"Outbound Click\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Pageview\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Scroll\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Site Search\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]}],\"linking\":[{\"name\":\"Google Ads Linking\",\"type\":\"Linking\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]}]},\"G-FYYHFMJ9LG\":{\"entityType\":\"GA4 Stream\",\"enhancedMeasurement\":[{\"name\":\"Outbound Click\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Pageview\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Scroll\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Site Search\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]}],\"linking\":[{\"name\":\"Google Ads Linking\",\"type\":\"Linking\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]}]},\"G-932EJZFCGM\":{\"entityType\":\"GA4 Stream\",\"enhancedMeasurement\":[{\"name\":\"Outbound Click\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Pageview\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Scroll\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]},{\"name\":\"Site Search\",\"type\":\"Enhanced Measurement\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]}],\"linking\":[{\"name\":\"Google Ads Linking\",\"type\":\"Linking\",\"parameters\":[{\"key\":\"enabled\",\"value\":\"true\"}]}]},\"GTM-WP9Q2FZV\":{\"cmp\":false,\"consentMode\":true,\"entityType\":\"GTM Container\",\"consentDefault\":{\"functionality_storage\":\"denied\",\"ad_storage\":\"denied\",\"ad_user_data\":\"denied\",\"personalization_storage\":\"denied\",\"analytics_storage\":\"denied\",\"ad_personalization\":\"denied\"},\"variables\":[{\"parameters\":[{\"key\":\"vtp_decodeCookie\",\"value\":true},{\"key\":\"vtp_name\",\"value\":\"CookieInformationConsent\"}],\"name\":\"1st Party Cookie\",\"type\":\"k\"},{\"parameters\":[{\"key\":\"vtp_javascript\",\"value\":[\"template\",\"(function(){var a=decodeURIComponent(\\\"\",[\"escape\",[\"macro\",0],7],\"\\\");a=JSON.parse(a);a=a.consents_approved;var b=\\\"denied\\\";a.includes(\\\"cookie_cat_marketing\\\")&&(b=\\\"granted\\\");return b})();\"]}],\"name\":\"Custom Javascript\",\"type\":\"jsm\"},{\"parameters\":[],\"name\":\"Builtin - Custom Event\",\"type\":\"e\"},{\"parameters\":[{\"key\":\"vtp_component\",\"value\":\"HOST\"},{\"key\":\"vtp_enableMultiQueryKeys\",\"value\":false},{\"key\":\"vtp_enableIgnoreEmptyQueryParam\",\"value\":false}],\"name\":\"URL\",\"type\":\"u\"},{\"parameters\":[{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_input\",\"value\":[\"macro\",3]},{\"key\":\"vtp_map\",\"value\":[\"list\",[\"map\",\"key\",\"pompdelux.com\",\"value\",\"G-V7ZTDN78DW\"],[\"map\",\"key\",\"pompdelux.dk\",\"value\",\"G-FYYHFMJ9LG\"],[\"map\",\"key\",\"pompdelux.de\",\"value\",\"G-DBYJP4WYGX\"],[\"map\",\"key\",\"pompdelux.nl\",\"value\",\"G-Q3143NKCC8\"],[\"map\",\"key\",\"pompdelux.ch\",\"value\",\"G-932EJZFCGM\"]]}],\"name\":\"Lookup Table\",\"type\":\"smm\"},{\"parameters\":[{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_input\",\"value\":[\"macro\",3]},{\"key\":\"vtp_map\",\"value\":[\"list\",[\"map\",\"key\",\"pompdelux.com\",\"value\",\"sgtm.pompdelux.com\"],[\"map\",\"key\",\"pompdelux.dk\",\"value\",\"sgtm.pompdelux.dk\"],[\"map\",\"key\",\"pompdelux.de\",\"value\",\"sgtm.pompdelux.de\"],[\"map\",\"key\",\"pompdelux.nl\",\"value\",\"sgtm.pompdelux.nl\"],[\"map\",\"key\",\"pompdelux.ch\",\"value\",\"sgtm.pompdelux.ch\"]]}],\"name\":\"Lookup Table\",\"type\":\"smm\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"user_data.country\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"user_data.city\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"user_data.street\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"user_data.last_name\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"user_data.phone\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"user_data.region\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"user_data.zip\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"user_data.first_name\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.user_data.email\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_mode\",\"value\":\"MANUAL\"},{\"key\":\"vtp_country\",\"value\":[\"macro\",6]},{\"key\":\"vtp_city\",\"value\":[\"macro\",7]},{\"key\":\"vtp_street\",\"value\":[\"macro\",8]},{\"key\":\"vtp_last_name\",\"value\":[\"macro\",9]},{\"key\":\"vtp_phone_number\",\"value\":[\"macro\",10]},{\"key\":\"vtp_region\",\"value\":[\"macro\",11]},{\"key\":\"vtp_postal_code\",\"value\":[\"macro\",12]},{\"key\":\"vtp_first_name\",\"value\":[\"macro\",13]},{\"key\":\"vtp_email\",\"value\":[\"macro\",14]},{\"key\":\"vtp_isAutoCollectPiiEnabledFlag\",\"value\":true}],\"name\":\"User Provided Data\",\"type\":\"awec\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.user_data.address.country\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.user_data.address.city\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.user_data.address.street\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"user_data.address.last_name\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.user_data.phone_number\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"user_data.address.region\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.user_data.address.postal_code\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.user_data.first_name\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_mode\",\"value\":\"MANUAL\"},{\"key\":\"vtp_country\",\"value\":[\"macro\",16]},{\"key\":\"vtp_city\",\"value\":[\"macro\",17]},{\"key\":\"vtp_street\",\"value\":[\"macro\",18]},{\"key\":\"vtp_last_name\",\"value\":[\"macro\",19]},{\"key\":\"vtp_phone_number\",\"value\":[\"macro\",20]},{\"key\":\"vtp_region\",\"value\":[\"macro\",21]},{\"key\":\"vtp_postal_code\",\"value\":[\"macro\",22]},{\"key\":\"vtp_first_name\",\"value\":[\"macro\",23]},{\"key\":\"vtp_email\",\"value\":[\"macro\",14]},{\"key\":\"vtp_isAutoCollectPiiEnabledFlag\",\"value\":true}],\"name\":\"User Provided Data\",\"type\":\"awec\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.value\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.transaction_id\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.currency\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.tax\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.shipping\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_input\",\"value\":[\"macro\",3]},{\"key\":\"vtp_map\",\"value\":[\"list\",[\"map\",\"key\",\"pompdelux.com\",\"value\",\"16715413997\"],[\"map\",\"key\",\"pompdelux.dk\",\"value\",\"16715407101\"],[\"map\",\"key\",\"pompdelux.de\",\"value\",\"16715413767\"],[\"map\",\"key\",\"pompdelux.nl\",\"value\",\"16715410403\"],[\"map\",\"key\",\"pompdelux.ch\",\"value\",\"16715541502\"]]}],\"name\":\"Lookup Table\",\"type\":\"smm\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.items.0.item_category\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.items.0.item_id\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.items.0.item_name\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.items.0.price\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce.items.0.quantity\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_input\",\"value\":[\"macro\",3]},{\"key\":\"vtp_map\",\"value\":[\"list\",[\"map\",\"key\",\"pompdelux.dk\",\"value\",\"oTEDCJi2ydYZEP29w6I-\"],[\"map\",\"key\",\"pompdelux.de\",\"value\",\"xpReCNLCxNYZEIfyw6I-\"],[\"map\",\"key\",\"pompdelux.nl\",\"value\",\"hvTjCLXWydYZEOPXw6I-\"],[\"map\",\"key\",\"pompdelux.ch\",\"value\",\"sZ3OCL3DydYZEP7Xy6I-\"],[\"map\",\"key\",\"pompdelux.com\",\"value\",\"o7iJCOHSydYZEO3zw6I-\"]]}],\"name\":\"Lookup Table\",\"type\":\"smm\"},{\"parameters\":[{\"key\":\"vtp_value\",\"value\":\"G-HNXSBKHFJ6\"}],\"name\":\"Constant\",\"type\":\"c\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"user_data.address.postal_code\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"2.user_data.email\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"2.user_data.phone_number\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"2.user_data.address.first_name\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"2.user_data.address.last_name\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"2.user_data.address.street\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"2.user_data.address.city\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"2.user_data.address.region\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"2.user_data.address.postal_code\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"2.user_data.address.country\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_mode\",\"value\":\"MANUAL\"},{\"key\":\"vtp_country\",\"value\":[\"macro\",47]},{\"key\":\"vtp_city\",\"value\":[\"macro\",44]},{\"key\":\"vtp_street\",\"value\":[\"macro\",43]},{\"key\":\"vtp_last_name\",\"value\":[\"macro\",42]},{\"key\":\"vtp_phone_number\",\"value\":[\"macro\",40]},{\"key\":\"vtp_region\",\"value\":[\"macro\",45]},{\"key\":\"vtp_postal_code\",\"value\":[\"macro\",46]},{\"key\":\"vtp_first_name\",\"value\":[\"macro\",41]},{\"key\":\"vtp_email\",\"value\":[\"macro\",39]},{\"key\":\"vtp_isAutoCollectPiiEnabledFlag\",\"value\":true}],\"name\":\"User Provided Data\",\"type\":\"awec\"},{\"parameters\":[{\"key\":\"vtp_dataLayerVersion\",\"value\":2},{\"key\":\"vtp_setDefaultValue\",\"value\":false},{\"key\":\"vtp_name\",\"value\":\"ecommerce\"}],\"name\":\"DataLayer Variable\",\"type\":\"v\"},{\"parameters\":[{\"key\":\"vtp_component\",\"value\":\"URL\"},{\"key\":\"vtp_enableMultiQueryKeys\",\"value\":false},{\"key\":\"vtp_enableIgnoreEmptyQueryParam\",\"value\":false}],\"name\":\"URL\",\"type\":\"u\"},{\"parameters\":[{\"key\":\"vtp_component\",\"value\":\"PATH\"},{\"key\":\"vtp_enableMultiQueryKeys\",\"value\":false},{\"key\":\"vtp_enableIgnoreEmptyQueryParam\",\"value\":false}],\"name\":\"URL\",\"type\":\"u\"},{\"parameters\":[{\"key\":\"vtp_component\",\"value\":\"URL\"}],\"name\":\"HTTP Referrer\",\"type\":\"f\"},{\"parameters\":[],\"name\":\"Builtin - Custom Event\",\"type\":\"e\"}],\"tags\":[{\"parameters\":[{\"key\":\"metadata\",\"value\":[\"map\"]},{\"key\":\"once_per_load\",\"value\":true},{\"key\":\"vtp_tagId\",\"value\":[\"macro\",4]},{\"key\":\"vtp_configSettingsTable\",\"value\":[\"list\",[\"map\",\"parameter\",\"send_page_view\",\"parameterValue\",\"true\"],[\"map\",\"parameter\",\"server_container_url\",\"parameterValue\",[\"macro\",5]],[\"map\",\"parameter\",\"domain\",\"parameterValue\",[\"macro\",5]],[\"map\",\"parameter\",\"user_data\",\"parameterValue\",[\"macro\",15]]]},{\"key\":\"tag_id\",\"value\":5}],\"triggers\":[0,1],\"name\":\"Google Tag\",\"type\":\"googtag\"},{\"parameters\":[{\"key\":\"metadata\",\"value\":[\"map\"]},{\"key\":\"once_per_load\",\"value\":true},{\"key\":\"vtp_enableCrossDomain\",\"value\":true},{\"key\":\"vtp_enableUrlPassthrough\",\"value\":false},{\"key\":\"vtp_acceptIncoming\",\"value\":true},{\"key\":\"vtp_linkerDomains\",\"value\":\"pompdelux-chf.myshopify.com, pompdelux-da.myshopify.com, pompdelux-de.myshopify.com, pompdelux-int.myshopify.com, pompdelux-nl.myshopify.com, pompdelux.ch, pompdelux.com, pompdelux.de, pompdelux.dk, pompdelux.fi, pompdelux.nl, pompdelux.no, pompdelux.se\"},{\"key\":\"vtp_enableCookieOverrides\",\"value\":false},{\"key\":\"vtp_formDecoration\",\"value\":false},{\"key\":\"vtp_urlPosition\",\"value\":\"query\"},{\"key\":\"tag_id\",\"value\":15}],\"triggers\":[0,1],\"name\":\"Conversion Linker\",\"type\":\"gclidw\"},{\"parameters\":[{\"key\":\"metadata\",\"value\":[\"map\"]},{\"key\":\"once_per_event\",\"value\":true},{\"key\":\"vtp_sendEcommerceData\",\"value\":true},{\"key\":\"vtp_getEcommerceDataFrom\",\"value\":\"dataLayer\"},{\"key\":\"vtp_enhancedUserId\",\"value\":false},{\"key\":\"vtp_eventSettingsTable\",\"value\":[\"list\",[\"map\",\"parameter\",\"server_container_url\",\"parameterValue\",[\"macro\",5]]]},{\"key\":\"vtp_eventName\",\"value\":\"view_item\"},{\"key\":\"vtp_measurementIdOverride\",\"value\":[\"macro\",4]},{\"key\":\"vtp_enableUserProperties\",\"value\":true},{\"key\":\"vtp_enableMoreSettingsOption\",\"value\":true},{\"key\":\"vtp_enableEuid\",\"value\":true},{\"key\":\"vtp_migratedToV2\",\"value\":true},{\"key\":\"vtp_demoV2\",\"value\":false},{\"key\":\"tag_id\",\"value\":17}],\"triggers\":[2],\"name\":\"Google Analytics 4 Event\",\"type\":\"gaawe\"},{\"parameters\":[{\"key\":\"metadata\",\"value\":[\"map\"]},{\"key\":\"once_per_event\",\"value\":true},{\"key\":\"vtp_sendEcommerceData\",\"value\":true},{\"key\":\"vtp_getEcommerceDataFrom\",\"value\":\"dataLayer\"},{\"key\":\"vtp_enhancedUserId\",\"value\":false},{\"key\":\"vtp_eventSettingsTable\",\"value\":[\"list\",[\"map\",\"parameter\",\"server_container_url\",\"parameterValue\",[\"macro\",5]]]},{\"key\":\"vtp_eventName\",\"value\":\"add_to_cart\"},{\"key\":\"vtp_measurementIdOverride\",\"value\":[\"macro\",4]},{\"key\":\"vtp_enableUserProperties\",\"value\":true},{\"key\":\"vtp_enableMoreSettingsOption\",\"value\":true},{\"key\":\"vtp_enableEuid\",\"value\":true},{\"key\":\"vtp_migratedToV2\",\"value\":true},{\"key\":\"vtp_demoV2\",\"value\":false},{\"key\":\"tag_id\",\"value\":19}],\"triggers\":[3],\"name\":\"Google Analytics 4 Event\",\"type\":\"gaawe\"},{\"parameters\":[{\"key\":\"metadata\",\"value\":[\"map\"]},{\"key\":\"once_per_event\",\"value\":true},{\"key\":\"vtp_sendEcommerceData\",\"value\":true},{\"key\":\"vtp_getEcommerceDataFrom\",\"value\":\"dataLayer\"},{\"key\":\"vtp_enhancedUserId\",\"value\":false},{\"key\":\"vtp_eventSettingsTable\",\"value\":[\"list\",[\"map\",\"parameter\",\"server_container_url\",\"parameterValue\",[\"macro\",5]]]},{\"key\":\"vtp_eventName\",\"value\":\"view_cart\"},{\"key\":\"vtp_measurementIdOverride\",\"value\":[\"macro\",4]},{\"key\":\"vtp_enableUserProperties\",\"value\":true},{\"key\":\"vtp_enableMoreSettingsOption\",\"value\":true},{\"key\":\"vtp_enableEuid\",\"value\":true},{\"key\":\"vtp_migratedToV2\",\"value\":true},{\"key\":\"vtp_demoV2\",\"value\":false},{\"key\":\"tag_id\",\"value\":21}],\"triggers\":[4],\"name\":\"Google Analytics 4 Event\",\"type\":\"gaawe\"},{\"parameters\":[{\"key\":\"metadata\",\"value\":[\"map\"]},{\"key\":\"once_per_event\",\"value\":true},{\"key\":\"vtp_userDataVariable\",\"value\":[\"macro\",24]},{\"key\":\"vtp_sendEcommerceData\",\"value\":true},{\"key\":\"vtp_getEcommerceDataFrom\",\"value\":\"dataLayer\"},{\"key\":\"vtp_enhancedUserId\",\"value\":true},{\"key\":\"vtp_eventSettingsTable\",\"value\":[\"list\",[\"map\",\"parameter\",\"value\",\"parameterValue\",[\"macro\",25]],[\"map\",\"parameter\",\"transaction_id\",\"parameterValue\",[\"macro\",26]],[\"map\",\"parameter\",\"currency\",\"parameterValue\",[\"macro\",27]],[\"map\",\"parameter\",\"tax\",\"parameterValue\",[\"macro\",28]],[\"map\",\"parameter\",\"shipping\",\"parameterValue\",[\"macro\",29]],[\"map\",\"parameter\",\"server_container_url\",\"parameterValue\",[\"macro\",5]],[\"map\",\"parameter\",\"domain\",\"parameterValue\",[\"macro\",5]],[\"map\",\"parameter\",\"user_data\",\"parameterValue\",[\"macro\",24]]]},{\"key\":\"vtp_eventName\",\"value\":\"purchase\"},{\"key\":\"vtp_measurementIdOverride\",\"value\":[\"macro\",4]},{\"key\":\"vtp_enableUserProperties\",\"value\":true},{\"key\":\"vtp_enableMoreSettingsOption\",\"value\":true},{\"key\":\"vtp_enableEuid\",\"value\":true},{\"key\":\"vtp_migratedToV2\",\"value\":true},{\"key\":\"vtp_demoV2\",\"value\":false},{\"key\":\"tag_id\",\"value\":22}],\"triggers\":[5],\"name\":\"Google Analytics 4 Event\",\"type\":\"gaawe\"},{\"parameters\":[{\"key\":\"vtp_originalTagType\",\"value\":\"awct\"},{\"key\":\"tag_id\",\"value\":31}],\"triggers\":[5],\"paused\":true,\"name\":\"Google Ads Conversion Tracking\",\"type\":\"awct\"},{\"parameters\":[{\"key\":\"vtp_originalTagType\",\"value\":\"gaawe\"},{\"key\":\"tag_id\",\"value\":40}],\"triggers\":[6],\"paused\":true,\"name\":\"Google Analytics 4 Event\",\"type\":\"gaawe\"},{\"parameters\":[{\"key\":\"vtp_originalTagType\",\"value\":\"googtag\"},{\"key\":\"tag_id\",\"value\":42}],\"triggers\":[3],\"paused\":true,\"name\":\"Google Tag\",\"type\":\"googtag\"},{\"parameters\":[{\"key\":\"vtp_originalTagType\",\"value\":\"gaawe\"},{\"key\":\"tag_id\",\"value\":43}],\"triggers\":[0,1],\"paused\":true,\"name\":\"Google Analytics 4 Event\",\"type\":\"gaawe\"},{\"parameters\":[{\"key\":\"vtp_originalTagType\",\"value\":\"gaawe\"},{\"key\":\"tag_id\",\"value\":44}],\"triggers\":[4],\"paused\":true,\"name\":\"Google Analytics 4 Event\",\"type\":\"gaawe\"},{\"parameters\":[{\"key\":\"metadata\",\"value\":[\"map\"]},{\"key\":\"once_per_event\",\"value\":true},{\"key\":\"vtp_sendEcommerceData\",\"value\":true},{\"key\":\"vtp_getEcommerceDataFrom\",\"value\":\"dataLayer\"},{\"key\":\"vtp_enhancedUserId\",\"value\":false},{\"key\":\"vtp_eventSettingsTable\",\"value\":[\"list\",[\"map\",\"parameter\",\"server_container_url\",\"parameterValue\",[\"macro\",5]]]},{\"key\":\"vtp_eventName\",\"value\":\"begin_checkout\"},{\"key\":\"vtp_measurementIdOverride\",\"value\":[\"macro\",4]},{\"key\":\"vtp_enableUserProperties\",\"value\":true},{\"key\":\"vtp_enableMoreSettingsOption\",\"value\":true},{\"key\":\"vtp_enableEuid\",\"value\":true},{\"key\":\"vtp_migratedToV2\",\"value\":true},{\"key\":\"vtp_demoV2\",\"value\":false},{\"key\":\"tag_id\",\"value\":47}],\"triggers\":[2],\"name\":\"Google Analytics 4 Event\",\"type\":\"gaawe\"},{\"parameters\":[{\"key\":\"vtp_originalTagType\",\"value\":\"gaawe\"},{\"key\":\"tag_id\",\"value\":50}],\"triggers\":[7],\"paused\":true,\"name\":\"Google Analytics 4 Event\",\"type\":\"gaawe\"},{\"parameters\":[{\"key\":\"metadata\",\"value\":[\"map\"]},{\"key\":\"once_per_load\",\"value\":true},{\"key\":\"vtp_tagId\",\"value\":[\"template\",\"AW-\",[\"macro\",30]]},{\"key\":\"tag_id\",\"value\":52}],\"triggers\":[5],\"name\":\"Google Tag\",\"type\":\"googtag\"},{\"parameters\":[{\"key\":\"vtp_originalTagType\",\"value\":\"gaawe\"},{\"key\":\"tag_id\",\"value\":69}],\"triggers\":[0,1],\"paused\":true,\"name\":\"Google Analytics 4 Event\",\"type\":\"gaawe\"}],\"ga4ServerSide\":true,\"triggers\":[{\"parameters\":[{\"key\":[\"macro\",1],\"op\":\"Contains\",\"value\":\"granted\"},{\"key\":[\"macro\",2],\"op\":\"Equals\",\"value\":\"cookie_cat_necessary\"}],\"type\":\"Custom Event\",\"name\":\"Custom Event\",\"isBlocking\":false,\"tags\":[0,1,9,14]},{\"parameters\":[{\"key\":[\"macro\",2],\"op\":\"Equals\",\"value\":\"cookie_cat_marketing\"}],\"type\":\"Custom Event\",\"name\":\"Custom Event\",\"isBlocking\":false,\"tags\":[0,1,9,14,18]},{\"parameters\":[{\"key\":[\"macro\",1],\"op\":\"Contains\",\"value\":\"granted\"},{\"key\":[\"macro\",2],\"op\":\"Equals\",\"value\":\"view_item_stape\"}],\"type\":\"Custom Event\",\"name\":\"Custom Event\",\"isBlocking\":false,\"tags\":[2,11]},{\"parameters\":[{\"key\":[\"macro\",1],\"op\":\"Contains\",\"value\":\"granted\"},{\"key\":[\"macro\",2],\"op\":\"Equals\",\"value\":\"add_to_cart_stape\"}],\"type\":\"Custom Event\",\"name\":\"Custom Event\",\"isBlocking\":false,\"tags\":[3,8]},{\"parameters\":[{\"key\":[\"macro\",1],\"op\":\"Contains\",\"value\":\"granted\"},{\"key\":[\"macro\",2],\"op\":\"Equals\",\"value\":\"view_cart_stape\"}],\"type\":\"Custom Event\",\"name\":\"Custom Event\",\"isBlocking\":false,\"tags\":[4,10]},{\"parameters\":[{\"key\":[\"macro\",1],\"op\":\"Contains\",\"value\":\"granted\"},{\"key\":[\"macro\",2],\"op\":\"Equals\",\"value\":\"purchase\"}],\"type\":\"Custom Event\",\"name\":\"Custom Event\",\"isBlocking\":false,\"tags\":[5,6,13,15,21]},{\"parameters\":[],\"type\":\"Initialization\",\"name\":\"Initialization\",\"isBlocking\":false,\"tags\":[7]},{\"parameters\":[{\"key\":[\"macro\",1],\"op\":\"Contains\",\"value\":\"granted\"},{\"key\":[\"macro\",2],\"op\":\"Equals\",\"value\":\"begin_checkout_stape\"}],\"type\":\"Custom Event\",\"name\":\"Custom Event\",\"isBlocking\":false,\"tags\":[12]},{\"parameters\":[],\"type\":\"Pageview\",\"name\":\"Pageview\",\"isBlocking\":false,\"tags\":[16,19]},{\"parameters\":[{\"key\":[\"macro\",2],\"op\":\"Equals\",\"value\":\"purchase_stape\"}],\"type\":\"Custom Event\",\"name\":\"Custom Event\",\"isBlocking\":false,\"tags\":[17,20]}]}}",
+            "techList": [
+              {
+                "id": 2,
+                "name": "Google Analytics 4 Event",
+                "min_price_per_year": 30000,
+                "paid_only": 0,
+                "icon": "ga4-logo.png"
+              },
+              {
+                "id": 28490,
+                "name": "GA4 Enhanced Measurement - Outbound click",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": "ga4-logo.png"
+              },
+              {
+                "id": 28489,
+                "name": "GA4 Enhanced Measurement - Site Search",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": "ga4-logo.png"
+              },
+              {
+                "id": 28487,
+                "name": "GA4 Enhanced Measurement - Scroll",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": "ga4-logo.png"
+              },
+              {
+                "id": 28488,
+                "name": "GA4 Enhanced Measurement - Page view",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": "ga4-logo.png"
+              },
+              {
+                "id": 3,
+                "name": "Google Tag",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": "gtag-icon.svg"
+              },
+              {
+                "id": 4,
+                "name": "Conversion Linker",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": "conversion-linker-icon.svg"
+              },
+              {
+                "id": 6,
+                "name": "Google Ads Conversion Tracking",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": "google-ads-icon.svg"
+              },
+              {
+                "id": 12,
+                "name": "GA4 Server-side",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": "ga4-logo.png"
+              },
+              {
+                "id": 18495,
+                "name": "Consent Mode",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": null
+              },
+              {
+                "id": 57227,
+                "name": "Consent Mode - functionality_storage - denied",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": null
+              },
+              {
+                "id": 57228,
+                "name": "Consent Mode - ad_storage - denied",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": null
+              },
+              {
+                "id": 57229,
+                "name": "Consent Mode - ad_user_data - denied",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": null
+              },
+              {
+                "id": 57219,
+                "name": "Consent Mode - personalization_storage - denied",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": null
+              },
+              {
+                "id": 57230,
+                "name": "Consent Mode - analytics_storage - denied",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": null
+              },
+              {
+                "id": 57231,
+                "name": "Consent Mode - ad_personalization - denied",
+                "min_price_per_year": null,
+                "paid_only": 0,
+                "icon": null
+              }
+            ],
+            "url": "GTM-WP9Q2FZV",
+            "cloudflareDNS": false
+          }
+        }
+      ]
+    },
+    "scanDuration": 19079,
+    "scanStatus": "completed",
+    "scanDate": {
+      "$date": "2025-11-03T14:00:41.180Z"
+    },
+    "createdAt": {
+      "$date": "2025-11-03T14:00:41.181Z"
+    },
+    "updatedAt": {
+      "$date": "2025-11-03T14:00:41.181Z"
+    },
+    "__v": 0
+  }

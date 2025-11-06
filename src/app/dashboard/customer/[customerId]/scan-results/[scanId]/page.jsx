@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, Globe, Calendar, Clock, AlertCircle, CheckCircle, ExternalLink } from "lucide-react";
+import { Loader2, ArrowLeft, Globe, Calendar, Clock, AlertCircle, CheckCircle, ExternalLink, Brain, Sparkles } from "lucide-react";
 import GtmAnalysis from "@/components/analysis/GtmAnalysis";
 
 export default function ScanResultsPage({ params }) {
@@ -18,6 +18,8 @@ export default function ScanResultsPage({ params }) {
     const [customerId, setCustomerId] = useState(null);
     const [scanId, setScanId] = useState(null);
     const [hasFetched, setHasFetched] = useState(false);
+    const [aiAnalysisLoading, setAiAnalysisLoading] = useState(false);
+    const [aiAnalysis, setAiAnalysis] = useState(null);
 
     useEffect(() => {
         const initializeParams = async () => {
@@ -103,6 +105,73 @@ export default function ScanResultsPage({ params }) {
             containerScans: scanData.scanData?.containerScans || scanData.containerScans || []
         };
     };
+
+    const handleAIAnalysis = async () => {
+        if (!scanId || !customerId) return;
+        
+        setAiAnalysisLoading(true);
+        
+        try {
+            // First check if analysis already exists
+            const existingResponse = await fetch(`/api/ai-analysis?scanId=${scanId}`);
+            if (existingResponse.ok) {
+                const existingData = await existingResponse.json();
+                if (existingData.analysis) {
+                    // Navigate to existing analysis
+                    router.push(`/dashboard/customer/${customerId}/scan-results/${scanId}/ai-analysis/${existingData.analysis._id}`);
+                    return;
+                }
+            }
+            
+            // Generate new analysis
+            const response = await fetch('/api/ai-analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    scanId: scanId,
+                    customerId: customerId
+                }),
+            });
+
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to generate AI analysis');
+            }
+
+            // Navigate to the new analysis page
+            router.push(`/dashboard/customer/${customerId}/scan-results/${scanId}/ai-analysis/${data.analysis._id}`);
+            
+        } catch (error) {
+            console.error('Error generating AI analysis:', error);
+            alert(`Failed to generate AI analysis: ${error.message}`);
+        } finally {
+            setAiAnalysisLoading(false);
+        }
+    };
+
+    // Check for existing AI analysis when component loads
+    useEffect(() => {
+        const checkExistingAnalysis = async () => {
+            if (!scanId) return;
+            
+            try {
+                const response = await fetch(`/api/ai-analysis?scanId=${scanId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setAiAnalysis(data.analysis);
+                }
+            } catch (error) {
+                // Silently fail - analysis doesn't exist yet
+            }
+        };
+        
+        if (scanId && session) {
+            checkExistingAnalysis();
+        }
+    }, [scanId, session]);
 
     if (status === "loading" || loading || !customerId || !scanId) {
         return (
@@ -233,7 +302,7 @@ export default function ScanResultsPage({ params }) {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                                 <div className="flex items-center gap-3">
                                     <ExternalLink className="w-5 h-5 text-gtm-primary" />
                                     <div>
@@ -260,6 +329,55 @@ export default function ScanResultsPage({ params }) {
                                     <div>
                                         <div className="text-sm text-gray-600">Containers Found</div>
                                         <div className="font-medium text-gray-900">{getContainerCount()}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* AI Analysis Action */}
+                            <div className="border-t border-gray-200 pt-6">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                                            <Brain className="w-5 h-5 text-white" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-medium text-gray-900">AI Analysis</h3>
+                                            <p className="text-sm text-gray-600">
+                                                {aiAnalysis 
+                                                    ? 'AI analysis available - view detailed insights and recommendations'
+                                                    : 'Generate AI-powered analysis of this scan for technical and strategic insights'
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        {aiAnalysis && (
+                                            <Button 
+                                                variant="outline"
+                                                onClick={() => router.push(`/dashboard/customer/${customerId}/scan-results/${scanId}/ai-analysis/${aiAnalysis._id}`)}
+                                                className="text-purple-600 hover:text-purple-700 border-purple-300 hover:border-purple-400"
+                                            >
+                                                <Brain className="w-4 h-4 mr-2" />
+                                                View Analysis
+                                            </Button>
+                                        )}
+                                        <Button 
+                                            onClick={handleAIAnalysis}
+                                            disabled={aiAnalysisLoading}
+                                            className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+                                        >
+                                            {aiAnalysisLoading ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                    Analyzing...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Sparkles className="w-4 h-4 mr-2" />
+                                                    {aiAnalysis ? 'Regenerate Analysis' : 'Analyze with AI'}
+                                                </>
+                                            )}
+                                        </Button>
                                     </div>
                                 </div>
                             </div>

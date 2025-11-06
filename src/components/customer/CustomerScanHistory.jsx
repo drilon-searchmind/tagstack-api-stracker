@@ -3,14 +3,17 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { History, Calendar, Globe, AlertCircle, CheckCircle, Loader2, Eye, ChevronDown, ChevronUp } from "lucide-react";
+import { History, Calendar, Globe, AlertCircle, CheckCircle, Loader2, Eye, ChevronDown, ChevronUp, Brain, Zap } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function CustomerScanHistory({ customer, onUpdate }) {
+    const router = useRouter();
     const [scanHistory, setScanHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [showAll, setShowAll] = useState(false);
     const [selectedScan, setSelectedScan] = useState(null);
+    const [analysisLoading, setAnalysisLoading] = useState({});
 
     useEffect(() => {
         if (customer?._id) {
@@ -21,7 +24,8 @@ export default function CustomerScanHistory({ customer, onUpdate }) {
     const fetchScanHistory = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`/api/scanned-url?customerId=${customer._id}&limit=20`);
+            // Use the new optimized endpoint that fetches everything in one call
+            const response = await fetch(`/api/customer/${customer._id}/scan-history`);
             const data = await response.json();
             
             if (!response.ok) {
@@ -35,6 +39,57 @@ export default function CustomerScanHistory({ customer, onUpdate }) {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleCreateAnalysis = async (scan) => {
+        try {
+            setAnalysisLoading(prev => ({ ...prev, [scan._id]: true }));
+            
+            const response = await fetch('/api/ai-analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    scanId: scan._id,
+                    customerId: customer._id
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to create AI analysis');
+            }
+
+            // Update the scan in our local state to include the new analysis
+            setScanHistory(prevScans => 
+                prevScans.map(s => 
+                    s._id === scan._id 
+                        ? { ...s, analysis: data.analysis }
+                        : s
+                )
+            );
+
+            // Navigate to the analysis page
+            router.push(`/dashboard/customer/${customer._id}/scan-results/${scan._id}/ai-analysis/${data.analysis._id}`);
+            
+        } catch (error) {
+            console.error('Error creating AI analysis:', error);
+            alert('Failed to create AI analysis. Please try again.');
+        } finally {
+            setAnalysisLoading(prev => ({ ...prev, [scan._id]: false }));
+        }
+    };
+
+    const handleViewAnalysis = (scan) => {
+        if (scan.analysis) {
+            router.push(`/dashboard/customer/${customer._id}/scan-results/${scan._id}/ai-analysis/${scan.analysis._id}`);
+        }
+    };
+
+    const handleViewScan = (scan) => {
+        router.push(`/dashboard/customer/${customer._id}/scan-results/${scan._id}`);
     };
 
     const formatDate = (dateString) => {
@@ -57,11 +112,6 @@ export default function CustomerScanHistory({ customer, onUpdate }) {
             return `${(duration / 1000).toFixed(1)}s`;
         }
         return `${duration}ms`;
-    };
-
-    const handleViewScan = (scan) => {
-        // Navigate to the scan results detail page
-        window.open(`/dashboard/customer/${customer._id}/scan-results/${scan._id}`, '');
     };
 
     const displayedScans = showAll ? scanHistory : scanHistory.slice(0, 5);
@@ -130,15 +180,52 @@ export default function CustomerScanHistory({ customer, onUpdate }) {
                                             </div>
                                         </div>
                                     </div>
-                                    <Button 
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => handleViewScan(scan)}
-                                        className="text-xs"
-                                    >
-                                        <Eye className="w-3 h-3 mr-1" />
-                                        View Results
-                                    </Button>
+                                    
+                                    {/* Action Buttons */}
+                                    <div className="flex items-center gap-2">
+                                        <Button 
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleViewScan(scan)}
+                                            className="text-xs"
+                                        >
+                                            <Eye className="w-3 h-3 mr-1" />
+                                            View Results
+                                        </Button>
+                                        
+                                        {/* AI Analysis Button */}
+                                        {scan.analysis ? (
+                                            <Button 
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => handleViewAnalysis(scan)}
+                                                className="text-xs bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                                            >
+                                                <Brain className="w-3 h-3 mr-1" />
+                                                View Analysis
+                                            </Button>
+                                        ) : (
+                                            <Button 
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => handleCreateAnalysis(scan)}
+                                                disabled={analysisLoading[scan._id]}
+                                                className="text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                                            >
+                                                {analysisLoading[scan._id] ? (
+                                                    <>
+                                                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                                        Analyzing...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Zap className="w-3 h-3 mr-1" />
+                                                        Analyze with AI
+                                                    </>
+                                                )}
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Expanded Scan Details */}
