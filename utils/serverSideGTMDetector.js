@@ -107,28 +107,65 @@ class ServerSideGTMDetector {
             results.detectionMethods.push('Starting browser-based dynamic detection');
             
             // Vercel-compatible Puppeteer setup
-            const isVercel = !!process.env.VERCEL_ENV;
+            const isVercel = !!process.env.VERCEL_ENV || !!process.env.VERCEL;
             let puppeteer;
             let launchOptions = {
                 headless: true,
+                timeout: 30000,
             };
 
             if (isVercel) {
                 results.detectionMethods.push('Running on Vercel - using @sparticuz/chromium');
-                const chromium = (await import('@sparticuz/chromium')).default;
-                puppeteer = await import('puppeteer-core');
-                launchOptions = {
-                    ...launchOptions,
-                    args: chromium.args,
-                    executablePath: await chromium.executablePath(),
-                };
+                try {
+                    // Use dynamic import with proper error handling
+                    const chromium = await import('@sparticuz/chromium');
+                    puppeteer = await import('puppeteer-core');
+                    
+                    // Get the executable path with error handling
+                    const executablePath = await chromium.default.executablePath();
+                    
+                    launchOptions = {
+                        ...launchOptions,
+                        args: [
+                            ...chromium.default.args,
+                            '--no-sandbox',
+                            '--disable-setuid-sandbox',
+                            '--disable-dev-shm-usage',
+                            '--disable-accelerated-2d-canvas',
+                            '--no-first-run',
+                            '--no-zygote',
+                            '--single-process',
+                            '--disable-gpu'
+                        ],
+                        executablePath: executablePath,
+                        headless: 'new' // Use new headless mode
+                    };
+                    
+                    results.detectionMethods.push(`Chromium executable path: ${executablePath}`);
+                } catch (chromiumError) {
+                    results.detectionMethods.push(`Chromium setup error: ${chromiumError.message}`);
+                    // Fallback to puppeteer-core without chromium
+                    puppeteer = await import('puppeteer-core');
+                    launchOptions = {
+                        headless: true,
+                        args: [
+                            '--no-sandbox',
+                            '--disable-setuid-sandbox',
+                            '--disable-dev-shm-usage'
+                        ]
+                    };
+                }
             } else {
                 results.detectionMethods.push('Running locally - using standard puppeteer');
                 puppeteer = await import('puppeteer');
             }
             
-            browser = await puppeteer.launch(launchOptions);
+            browser = await puppeteer.default.launch(launchOptions);
             const page = await browser.newPage();
+            
+            // Set viewport and user agent
+            await page.setViewport({ width: 1920, height: 1080 });
+            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
             
             // Set up network request monitoring
             const networkRequests = [];
@@ -164,9 +201,9 @@ class ServerSideGTMDetector {
                 }
             });
 
-            // Navigate to the page
+            // Navigate to the page with timeout
             await page.goto(url, { 
-                waitUntil: 'networkidle2', // Wait for network to be idle for 500ms
+                waitUntil: 'networkidle2',
                 timeout: 30000 
             });
 
@@ -200,7 +237,11 @@ class ServerSideGTMDetector {
             results.detectionMethods.push(`Browser detection error: ${error.message}`);
         } finally {
             if (browser) {
-                await browser.close();
+                try {
+                    await browser.close();
+                } catch (closeError) {
+                    results.detectionMethods.push(`Browser close error: ${closeError.message}`);
+                }
             }
         }
 
