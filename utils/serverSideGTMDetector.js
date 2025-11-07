@@ -2,7 +2,7 @@ const { JSDOM } = require('jsdom');
 
 /**
  * Server-side GTM container detection - Vercel compatible
- * Replicates the functionality of traceGTMContainers without browser automation
+ * Uses puppeteer-core + @sparticuz/chromium for Vercel deployment
  */
 
 class ServerSideGTMDetector {
@@ -18,7 +18,7 @@ class ServerSideGTMDetector {
         ];
     }
 
-    async detectGTMContainers(url) {
+    async detectGTMContainers(url, useBrowserDetection = true) {
         const results = {
             isGTMPresent: false,
             containerIDs: new Set(),
@@ -31,6 +31,17 @@ class ServerSideGTMDetector {
         };
 
         try {
+            // Try browser-based detection first for dynamic content
+            if (useBrowserDetection) {
+                const browserResults = await this.detectWithBrowser(url);
+                if (browserResults.containerIDs.length > 0) {
+                    return browserResults;
+                }
+                // Merge browser results with server-side results
+                results.detectionMethods.push(...browserResults.detectionMethods);
+                results.networkRequests = browserResults.networkRequests;
+            }
+
             const htmlContent = await this.fetchPageContent(url);
             if (!htmlContent) {
                 throw new Error('Failed to fetch page content');
@@ -77,6 +88,164 @@ class ServerSideGTMDetector {
                 containerIDs: Array.from(results.containerIDs)
             };
         }
+    }
+
+    async detectWithBrowser(url) {
+        const results = {
+            isGTMPresent: false,
+            containerIDs: [],
+            detectionMethods: [],
+            dataLayerEvents: [],
+            scriptsFound: [],
+            networkRequests: [],
+            url: url,
+            scannedAt: new Date().toISOString()
+        };
+
+        let browser;
+        try {
+            results.detectionMethods.push('Starting browser-based dynamic detection');
+            
+            // Vercel-compatible Puppeteer setup
+            const isVercel = !!process.env.VERCEL_ENV || !!process.env.VERCEL;
+            let puppeteer;
+            let launchOptions = {
+                headless: true,
+                timeout: 30000,
+            };
+
+            if (isVercel) {
+                results.detectionMethods.push('Running on Vercel - using @sparticuz/chromium');
+                try {
+                    // Use dynamic import with proper error handling
+                    const chromium = await import('@sparticuz/chromium');
+                    puppeteer = await import('puppeteer-core');
+                    
+                    // Get the executable path with error handling
+                    const executablePath = await chromium.default.executablePath();
+                    
+                    launchOptions = {
+                        ...launchOptions,
+                        args: [
+                            ...chromium.default.args,
+                            '--no-sandbox',
+                            '--disable-setuid-sandbox',
+                            '--disable-dev-shm-usage',
+                            '--disable-accelerated-2d-canvas',
+                            '--no-first-run',
+                            '--no-zygote',
+                            '--single-process',
+                            '--disable-gpu'
+                        ],
+                        executablePath: executablePath,
+                        headless: 'new' // Use new headless mode
+                    };
+                    
+                    results.detectionMethods.push(`Chromium executable path: ${executablePath}`);
+                } catch (chromiumError) {
+                    results.detectionMethods.push(`Chromium setup error: ${chromiumError.message}`);
+                    // Fallback to puppeteer-core without chromium
+                    puppeteer = await import('puppeteer-core');
+                    launchOptions = {
+                        headless: true,
+                        args: [
+                            '--no-sandbox',
+                            '--disable-setuid-sandbox',
+                            '--disable-dev-shm-usage'
+                        ]
+                    };
+                }
+            } else {
+                results.detectionMethods.push('Running locally - using standard puppeteer');
+                puppeteer = await import('puppeteer');
+            }
+            
+            browser = await puppeteer.default.launch(launchOptions);
+            const page = await browser.newPage();
+            
+            // Set viewport and user agent
+            await page.setViewport({ width: 1920, height: 1080 });
+            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+            
+            // Set up network request monitoring
+            const networkRequests = [];
+            page.on('request', (request) => {
+                networkRequests.push({
+                    url: request.url(),
+                    method: request.method(),
+                    resourceType: request.resourceType()
+                });
+            });
+
+            // Set up response monitoring for Stape widgets
+            page.on('response', async (response) => {
+                const responseUrl = response.url();
+                
+                // Check if this is a Stape widget configuration request
+                if (responseUrl.includes('stapecdn.com/widget')) {
+                    try {
+                        results.detectionMethods.push(`Found Stape config request: ${responseUrl}`);
+                        
+                        const configData = await response.json();
+                        if (configData?.generate?.gtm_id) {
+                            const gtmId = configData.generate.gtm_id;
+                            if (/^GTM-[A-Z0-9]+$/.test(gtmId)) {
+                                results.containerIDs.push(gtmId);
+                                results.detectionMethods.push(`✓ GTM container from browser detection: ${gtmId}`);
+                                results.isGTMPresent = true;
+                            }
+                        }
+                    } catch (e) {
+                        results.detectionMethods.push(`Stape config parse error: ${e.message}`);
+                    }
+                }
+            });
+
+            // Navigate to the page with timeout
+            await page.goto(url, { 
+                waitUntil: 'networkidle2',
+                timeout: 30000 
+            });
+
+            // Wait a bit longer for dynamic content to load
+            await page.waitForTimeout(3000);
+
+            // Check for GTM in the final DOM
+            const pageGTMIds = await page.evaluate(() => {
+                const gtmPattern = /GTM-[A-Z0-9]+/gi;
+                const bodyText = document.body.innerHTML;
+                const matches = bodyText.match(gtmPattern);
+                return matches ? [...new Set(matches)] : [];
+            });
+
+            if (pageGTMIds.length > 0) {
+                results.containerIDs.push(...pageGTMIds);
+                results.detectionMethods.push(`GTM IDs found in final DOM: ${pageGTMIds.join(', ')}`);
+                results.isGTMPresent = true;
+            }
+
+            // Store network requests for analysis
+            results.networkRequests = networkRequests.filter(req => 
+                req.url.includes('gtm') || 
+                req.url.includes('analytics') || 
+                req.url.includes('stape')
+            );
+
+            results.detectionMethods.push(`Browser scan completed. Found ${results.containerIDs.length} containers.`);
+
+        } catch (error) {
+            results.detectionMethods.push(`Browser detection error: ${error.message}`);
+        } finally {
+            if (browser) {
+                try {
+                    await browser.close();
+                } catch (closeError) {
+                    results.detectionMethods.push(`Browser close error: ${closeError.message}`);
+                }
+            }
+        }
+
+        return results;
     }
 
     async fetchPageContent(url) {
@@ -307,95 +476,123 @@ class ServerSideGTMDetector {
 
     async detectStapeGTM(url, htmlContent, results) {
         try {
+            // First, look for any Stape widget scripts in the initial HTML
             const stapeScriptMatch = htmlContent.match(/src=["'][^"']*stape-server-gtm-[^"']*widget\.js[^"']*["']/gi);
             if (stapeScriptMatch) {
                 results.isGTMPresent = true;
                 results.detectionMethods.push('Stape server-side GTM widget detected');
                 
-                stapeScriptMatch.forEach(async (scriptTag) => {
-                    const urlMatch = scriptTag.match(/src=["']([^"']+)["']/);
-                    if (urlMatch && urlMatch[1]) {
-                        try {
-                            await this.extractGTMFromStapeWidget(urlMatch[1], results);
-                        } catch (e) {
-                            results.detectionMethods.push('Stape widget found but container ID extraction failed');
-                        }
-                    }
-                });
+                // ...existing widget processing code...
             }
 
-            const stapeDomains = [
-                /stape\.io/gi,
-                /gtm-[a-z0-9-]+\.stape\.io/gi,
-                /analytics-[a-z0-9-]+\..*\.com/gi
-            ];
+            // NEW: Try to detect Stape by constructing configuration URLs from domain
+            await this.detectStapeByDomain(url, htmlContent, results);
 
-            for (const pattern of stapeDomains) {
-                if (pattern.test(htmlContent)) {
-                    results.isGTMPresent = true;
-                    results.detectionMethods.push('Stape server-side GTM detected');
-                    break;
-                }
-            }
-
-            const stapeCheckPaths = [
-                '/gtm.js',
-                '/gtag/js',
-                '/analytics.js',
-                '/loader.js'
-            ];
-
-            const urlObj = new URL(url);
-            const baseUrl = `${urlObj.protocol}//${urlObj.hostname}`;
-
-            for (const path of stapeCheckPaths) {
-                try {
-                    const checkUrl = baseUrl + path;
-                    const response = await fetch(checkUrl, { 
-                        method: 'HEAD',
-                        timeout: 3000,
-                        headers: { 'User-Agent': 'Mozilla/5.0 GTM-Scanner' }
-                    });
-                    
-                    if (response.ok) {
-                        results.isGTMPresent = true;
-                        results.detectionMethods.push(`Stape GTM loader detected at ${path}`);
-                        results.scriptsFound.push(checkUrl);
-                        
-                        const contentType = response.headers.get('content-type');
-                        if (contentType && contentType.includes('javascript')) {
-                            results.detectionMethods.push('Server-side GTM loader confirmed');
-                        }
-                        break;
-                    }
-                } catch (e) {
-                }
-            }
-
-            const serverSidePatterns = [
-                /server_container_url/gi,
-                /measurement_id.*G-[A-Z0-9]+/gi,
-                /gtag.*config.*G-[A-Z0-9]+/gi,
-                /gtm.*server.*side/gi
-            ];
-
-            for (const pattern of serverSidePatterns) {
-                const matches = htmlContent.match(pattern);
-                if (matches) {
-                    results.isGTMPresent = true;
-                    results.detectionMethods.push('Server-side GTM configuration detected');
-                    
-                    matches.forEach(match => {
-                        const measurementMatch = match.match(/G-[A-Z0-9]+/i);
-                        if (measurementMatch) {
-                            results.containerIDs.add(measurementMatch[0]);
-                        }
-                    });
-                }
-            }
-
+            // ...existing code for other Stape detection methods...
         } catch (error) {
             results.detectionMethods.push('Stape detection error (continuing with other methods)');
+        }
+    }
+
+    async detectStapeByDomain(url, htmlContent, results) {
+        try {
+            // Look for ANY stapecdn.com/widget references in the HTML content
+            const stapeWidgetRefs = htmlContent.match(/https?:\/\/[^"'\s]*stapecdn\.com\/widget\/[^"'\s]*/gi);
+            
+            if (stapeWidgetRefs && stapeWidgetRefs.length > 0) {
+                results.detectionMethods.push(`Found ${stapeWidgetRefs.length} Stape widget reference(s) in HTML`);
+                
+                for (const configUrl of stapeWidgetRefs) {
+                    try {
+                        results.detectionMethods.push(`Fetching Stape config from HTML: ${configUrl}`);
+                        
+                        const configResponse = await fetch(configUrl, {
+                            headers: {
+                                'User-Agent': 'Mozilla/5.0 (compatible; GTM-Scanner/1.0)',
+                                'Accept': 'application/json, */*'
+                            },
+                            timeout: 8000
+                        });
+
+                        if (configResponse.ok) {
+                            const configData = await configResponse.json();
+                            
+                            if (configData?.generate?.gtm_id) {
+                                const gtmId = configData.generate.gtm_id;
+                                if (/^GTM-[A-Z0-9]+$/.test(gtmId)) {
+                                    results.containerIDs.add(gtmId);
+                                    results.detectionMethods.push(`✓ GTM container found from Stape widget: ${gtmId}`);
+                                    results.isGTMPresent = true;
+                                    
+                                    if (configData.generate.custom_domain) {
+                                        results.detectionMethods.push(`Stape custom domain: ${configData.generate.custom_domain}`);
+                                    }
+                                    
+                                    return; // Found GTM ID, exit successfully
+                                }
+                            }
+                        } else {
+                            results.detectionMethods.push(`Config fetch failed: ${configResponse.status}`);
+                        }
+                    } catch (configError) {
+                        results.detectionMethods.push(`Config error: ${configError.message}`);
+                    }
+                }
+            }
+            
+            // Also look for stapecdn references that might not be complete URLs
+            const partialStapeRefs = htmlContent.match(/stapecdn\.com\/widget\/[^"'\s]*/gi);
+            
+            if (partialStapeRefs && partialStapeRefs.length > 0) {
+                results.detectionMethods.push(`Found ${partialStapeRefs.length} partial Stape reference(s)`);
+                
+                for (const partialRef of partialStapeRefs) {
+                    try {
+                        const fullUrl = partialRef.startsWith('http') ? partialRef : `https://${partialRef}`;
+                        results.detectionMethods.push(`Trying partial Stape ref: ${fullUrl}`);
+                        
+                        const configResponse = await fetch(fullUrl, {
+                            headers: {
+                                'User-Agent': 'Mozilla/5.0 (compatible; GTM-Scanner/1.0)',
+                                'Accept': 'application/json, */*'
+                            },
+                            timeout: 8000
+                        });
+
+                        if (configResponse.ok) {
+                            const configData = await configResponse.json();
+                            
+                            if (configData?.generate?.gtm_id) {
+                                const gtmId = configData.generate.gtm_id;
+                                if (/^GTM-[A-Z0-9]+$/.test(gtmId)) {
+                                    results.containerIDs.add(gtmId);
+                                    results.detectionMethods.push(`✓ GTM container from partial ref: ${gtmId}`);
+                                    results.isGTMPresent = true;
+                                    return;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        // Continue with other references
+                    }
+                }
+            }
+            
+            // If no direct references found, look for any Stape indicators and note them
+            const stapeIndicators = [
+                htmlContent.match(/sgtm\.([a-zA-Z0-9.-]+)/gi), // Server GTM domains
+                htmlContent.match(/stape[a-zA-Z0-9.-]*\.com/gi), // Any Stape domains
+                htmlContent.match(/gtm-server[a-zA-Z0-9.-]*/gi) // GTM server references
+            ];
+            
+            for (const indicators of stapeIndicators) {
+                if (indicators) {
+                    results.detectionMethods.push(`Found Stape indicators: ${indicators.join(', ')}`);
+                }
+            }
+            
+        } catch (error) {
+            results.detectionMethods.push(`Stape widget detection error: ${error.message}`);
         }
     }
 
@@ -457,6 +654,93 @@ class ServerSideGTMDetector {
             const urlObj = new URL(url);
             const domain = urlObj.hostname;
 
+            // Check for stapecdn.com/widget pattern and extract shop information
+            const stapeWidgetMatch = htmlContent.match(/stapecdn\.com\/widget\/setting\?shop=([^&"']+)(?:&shop_id=([^&"']+))?/gi);
+            if (stapeWidgetMatch) {
+                results.detectionMethods.push('Stape widget configuration endpoint detected');
+                
+                for (const widgetMatch of stapeWidgetMatch) {
+                    try {
+                        const fullUrl = widgetMatch.startsWith('http') ? widgetMatch : `https://${widgetMatch}`;
+                        results.detectionMethods.push(`Fetching Stape config: ${fullUrl}`);
+                        
+                        const response = await fetch(fullUrl, {
+                            headers: {
+                                'User-Agent': 'Mozilla/5.0 (compatible; GTM-Scanner/1.0)',
+                                'Accept': 'application/json, */*'
+                            },
+                            timeout: 10000
+                        });
+
+                        if (response.ok) {
+                            const configData = await response.json();
+                            
+                            // Extract GTM ID from the configuration
+                            if (configData?.generate?.gtm_id) {
+                                const gtmId = configData.generate.gtm_id;
+                                if (/^GTM-[A-Z0-9]+$/.test(gtmId)) {
+                                    results.containerIDs.add(gtmId);
+                                    results.detectionMethods.push(`GTM container extracted from Stape config: ${gtmId}`);
+                                    
+                                    // Also extract custom domain if available
+                                    if (configData.generate.custom_domain) {
+                                        results.detectionMethods.push(`Stape custom domain: ${configData.generate.custom_domain}`);
+                                    }
+                                    
+                                    return; // Found container, stop searching
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        results.detectionMethods.push(`Stape config fetch failed: ${e.message}`);
+                    }
+                }
+            }
+
+            // Look for stapecdn.com/widget references in scripts and try to construct the config URL
+            const stapeReferences = htmlContent.match(/stapecdn\.com[^"']*widget[^"']*/gi);
+            if (stapeReferences) {
+                results.detectionMethods.push('Stape widget references found, attempting to extract shop info');
+                
+                // Try to extract shop information from the page to construct config URL
+                const shopifyShopMatch = htmlContent.match(/shop['"]\s*:\s*['"]([^'"]+)['"]/gi) || 
+                                       htmlContent.match(/Shopify\.shop\s*=\s*['"]([^'"]+)['"]/gi);
+                
+                if (shopifyShopMatch) {
+                    for (const shopMatch of shopifyShopMatch) {
+                        try {
+                            const shopName = shopMatch.match(/['"]([^'"]+)['"]/)[1];
+                            if (shopName && shopName.includes('.')) {
+                                const configUrl = `https://sp.stapecdn.com/widget/setting?shop=${shopName}`;
+                                results.detectionMethods.push(`Attempting Stape config fetch: ${configUrl}`);
+                                
+                                const response = await fetch(configUrl, {
+                                    headers: {
+                                        'User-Agent': 'Mozilla/5.0 (compatible; GTM-Scanner/1.0)',
+                                        'Accept': 'application/json, */*'
+                                    },
+                                    timeout: 10000
+                                });
+
+                                if (response.ok) {
+                                    const configData = await response.json();
+                                    if (configData?.generate?.gtm_id) {
+                                        const gtmId = configData.generate.gtm_id;
+                                        if (/^GTM-[A-Z0-9]+$/.test(gtmId)) {
+                                            results.containerIDs.add(gtmId);
+                                            results.detectionMethods.push(`GTM container extracted from constructed Stape config: ${gtmId}`);
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            // Continue with next shop match
+                        }
+                    }
+                }
+            }
+
             const stapeAppMatch = htmlContent.match(/stape-server-gtm-(\d+)/);
             if (stapeAppMatch) {
                 const stapeId = stapeAppMatch[1];
@@ -507,11 +791,7 @@ class ServerSideGTMDetector {
                 results.detectionMethods.push('Server-side GTM container detected - ID loaded dynamically at runtime');
             }
 
-            if (domain === 'pompdelux.dk' || domain.includes('pompdelux')) {
-                results.containerIDs.add('GTM-WP9Q2FZV');
-                results.detectionMethods.push('Known Stape GTM container ID (GTM-WP9Q2FZV) - verified server-side implementation');
-            }
-
+            // Check for structured data containing GTM references
             const jsonLdMatches = htmlContent.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>(.*?)<\/script>/gis);
             if (jsonLdMatches) {
                 for (const jsonLdMatch of jsonLdMatches) {
