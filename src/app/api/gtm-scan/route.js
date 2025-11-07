@@ -129,6 +129,7 @@ export async function GET(request) {
       throw new Error(`Tracer file not found at ${tracerPath}`);
     }
 
+    // Always use Vercel-compatible Puppeteer setup
     async function tryDynamicImport(spec) {
       try {
         const mod = await new Function(`return import('${spec}')`)();
@@ -138,7 +139,8 @@ export async function GET(request) {
       }
     }
 
-    let chromium = await tryDynamicImport("chrome-aws-lambda");
+    // Try to import Vercel-compatible packages first
+    let chromium = await tryDynamicImport("@sparticuz/chromium");
     let puppeteer = await tryDynamicImport("puppeteer-core");
 
     if (!puppeteer) {
@@ -148,7 +150,16 @@ export async function GET(request) {
 
     if (!chromium) {
       chromium = {
-        args: [],
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-accelerated-2d-canvas",
+          "--no-first-run",
+          "--no-zygote",
+          "--single-process",
+          "--disable-gpu"
+        ],
         executablePath: async () => process.env.CHROME_PATH || undefined,
         defaultViewport: null,
         headless: true,
@@ -165,11 +176,22 @@ export async function GET(request) {
     } else {
       execPath = chromium && chromium.executablePath ? chromium.executablePath : process.env.CHROME_PATH;
     }
+    
     const launchArgs = [
-      ...((chromium && chromium.args && chromium.args.length) ? chromium.args : []),
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
+      ...((chromium && chromium.args && chromium.args.length) ? chromium.args : [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process",
+        "--disable-gpu"
+      ]),
     ];
+
+    console.log(`Launching browser with execPath: ${execPath || 'default'}`);
+    console.log(`Launch args: ${launchArgs.join(' ')}`);
 
     const browser = await puppeteer.launch({
       args: launchArgs,
@@ -180,8 +202,10 @@ export async function GET(request) {
 
     const page = await browser.newPage();
     await page.setUserAgent("Mozilla/5.0 (compatible; GTM-Scanner/1.0)");
+    
+    console.log(`Navigating to: ${url}`);
     await page.goto(url, { waitUntil: "networkidle2", timeout: 45000 });
-    await page.goto(url, { waitUntil: "networkidle2", timeout: 45000 });
+    
     if (typeof page.waitForTimeout === "function") {
         await page.waitForTimeout(2000);
     } else {
@@ -250,6 +274,7 @@ export async function GET(request) {
     );
 
     const perfCandidates = (perfResources || []).filter((r) => /gtm\.js|gtag\/js|loader\.js/i.test(r));
+
     for (const p of perfCandidates) {
         if (!fetchedScripts.some((f) => f.src && f.src.replace(/\/+$/, "") === p.replace(/\/+$/, ""))) {
             const info = await fetchScriptContent(p);
@@ -303,49 +328,12 @@ export async function GET(request) {
                 c.gtmJs = { src: gtmUrl, status: resp.status };
             }
         } catch (err) {
-            try {
-                const fallbackPath = path.join(process.cwd(), "..", "temp-folder", "gtmjs.js");
-                if (fs.existsSync(fallbackPath)) {
-                    const fallbackContent = fs.readFileSync(fallbackPath, "utf8");
-
-                    let dataTextFallback = null;
-                    try {
-                        dataTextFallback = extractVarObjectWithAcorn(fallbackContent, 'data');
-                    } catch (e) {
-                        dataTextFallback = null;
-                    }
-                    if (!dataTextFallback) dataTextFallback = extractVarObjectFromScript(fallbackContent, 'data');
-
-                    const finalFallback = dataTextFallback || "";
-
-                    c.gtmJs = {
-                        src: `file:${fallbackPath}`,
-                        status: 200,
-                        content: finalFallback,
-                        contentLength: finalFallback.length,
-                        note: "fetched-from-local-fallback"
-                    };
-                } else {
-                    c.gtmJs = { src: gtmUrl, error: String(err) };
-                }
-            } catch (fsErr) {
-                c.gtmJs = { src: gtmUrl, error: String(err), fsFallbackError: String(fsErr) };
-            }
-        }
-
-        if (c.gtmJs && c.gtmJs.content) {
-            let dataObjText = extractVarObjectWithAcorn(c.gtmJs.content, 'data');
-            if (!dataObjText) dataObjText = extractVarObjectFromScript(c.gtmJs.content, 'data');
-            if (dataObjText) {
-                c.gtmJs.dataObjectText = dataObjText;
-            } else {
-                c.gtmJs.dataObjectText = null;
-            }
+            c.gtmJs = { src: gtmUrl, error: String(err) };
         }
     }
 
     const result = {
-        success: true,
+        success: !rawResult?.error,
         url,
         scanTimestamp: new Date().toISOString(),
         containers,
@@ -363,4 +351,210 @@ export async function GET(request) {
     console.error("Scan error:", error);
     return NextResponse.json({ success: false, message: String(error) }, { status: 500 });
   }
+}
+
+export async function POST(request) {
+    try {
+        const { url } = await request.json();
+        
+        if (!url) {
+            return NextResponse.json({ error: 'URL is required' }, { status: 400 });
+        }
+
+        console.log(`Starting GTM scan for: ${url}`);
+        
+        // Always use Vercel-compatible Puppeteer setup for consistency
+        const results = await detectWithVercelPuppeteer(url);
+
+        // Format results for API response
+        const response = {
+            success: true,
+            url: results.url || url,
+            scanTimestamp: results.scannedAt || new Date().toISOString(),
+            containers: results.containerIDs || [],
+            detectionMethods: results.detectionMethods || [],
+            dataLayerEvents: results.dataLayerEvents || [],
+            scripts: results.scriptsFound || [],
+            networkRequests: results.networkRequests || [],
+            rawTracer: {
+                isGTMPresent: results.isGTMPresent || false,
+                containerIDs: results.containerIDs || [],
+                detectionMethods: results.detectionMethods || [],
+                dataLayerEvents: results.dataLayerEvents || [],
+                scriptsFound: results.scriptsFound || [],
+                networkRequests: results.networkRequests || []
+            }
+        };
+
+        console.log(`GTM scan completed for ${url}:`, {
+            containersFound: response.containers.length,
+            detectionMethods: response.detectionMethods.length,
+            networkRequests: response.networkRequests.length
+        });
+
+        return NextResponse.json(response);
+
+    } catch (error) {
+        console.error('GTM scan error:', error);
+        return NextResponse.json(
+            { 
+                error: 'Failed to scan URL',
+                details: error.message,
+                success: false
+            }, 
+            { status: 500 }
+        );
+    }
+}
+
+async function detectWithVercelPuppeteer(url) {
+    const results = {
+        isGTMPresent: false,
+        containerIDs: [],
+        detectionMethods: [],
+        dataLayerEvents: [],
+        scriptsFound: [],
+        networkRequests: [],
+        url: url,
+        scannedAt: new Date().toISOString()
+    };
+
+    let browser;
+    try {
+        results.detectionMethods.push('Starting Vercel-compatible browser detection');
+        
+        // Always use Vercel-compatible setup (works on both localhost and Vercel)
+        let puppeteer;
+        let launchOptions = {
+            headless: true,
+        };
+
+        try {
+            results.detectionMethods.push('Using @sparticuz/chromium + puppeteer-core');
+            const chromium = (await import('@sparticuz/chromium')).default;
+            puppeteer = await import('puppeteer-core');
+            launchOptions = {
+                ...launchOptions,
+                args: chromium.args,
+                executablePath: await chromium.executablePath(),
+            };
+        } catch (importError) {
+            results.detectionMethods.push(`Chromium import failed: ${importError.message}, falling back to local puppeteer`);
+            puppeteer = await import('puppeteer');
+            launchOptions = {
+                ...launchOptions,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--single-process',
+                    '--disable-gpu'
+                ]
+            };
+        }
+        
+        browser = await puppeteer.launch(launchOptions);
+        const page = await browser.newPage();
+        
+        // Set up network request monitoring
+        const networkRequests = [];
+        page.on('request', (request) => {
+            networkRequests.push({
+                url: request.url(),
+                method: request.method(),
+                resourceType: request.resourceType()
+            });
+        });
+
+        // Set up response monitoring for Stape widgets
+        page.on('response', async (response) => {
+            const responseUrl = response.url();
+            
+            // Check if this is a Stape widget configuration request
+            if (responseUrl.includes('stapecdn.com/widget')) {
+                try {
+                    results.detectionMethods.push(`Found Stape config request: ${responseUrl}`);
+                    
+                    const configData = await response.json();
+                    if (configData?.generate?.gtm_id) {
+                        const gtmId = configData.generate.gtm_id;
+                        if (/^GTM-[A-Z0-9]+$/.test(gtmId)) {
+                            results.containerIDs.push(gtmId);
+                            results.detectionMethods.push(`✓ GTM container from browser detection: ${gtmId}`);
+                            results.isGTMPresent = true;
+                        }
+                    }
+                } catch (e) {
+                    results.detectionMethods.push(`Stape config parse error: ${e.message}`);
+                }
+            }
+        });
+
+        // Navigate to the page
+        await page.goto(url, { 
+            waitUntil: 'networkidle2',
+            timeout: 30000 
+        });
+
+        // Wait longer for dynamic content to load (Stape widgets load after 2-5 seconds)
+        await page.waitForTimeout(5000);
+
+        // Check for GTM in the final DOM
+        const pageGTMIds = await page.evaluate(() => {
+            const gtmPattern = /GTM-[A-Z0-9]+/gi;
+            const bodyText = document.body.innerHTML;
+            const matches = bodyText.match(gtmPattern);
+            return matches ? [...new Set(matches)] : [];
+        });
+
+        if (pageGTMIds.length > 0) {
+            results.containerIDs.push(...pageGTMIds);
+            results.detectionMethods.push(`GTM IDs found in final DOM: ${pageGTMIds.join(', ')}`);
+            results.isGTMPresent = true;
+        }
+
+        // Check for dataLayer
+        const dataLayerData = await page.evaluate(() => {
+            if (window.dataLayer && Array.isArray(window.dataLayer)) {
+                return window.dataLayer.slice(-50); // Get last 50 events
+            }
+            return [];
+        });
+
+        if (dataLayerData.length > 0) {
+            results.dataLayerEvents = dataLayerData;
+            results.detectionMethods.push(`Found ${dataLayerData.length} dataLayer events`);
+            results.isGTMPresent = true;
+        }
+
+        // Get script sources
+        const scriptSources = await page.evaluate(() => {
+            return Array.from(document.querySelectorAll('script[src]')).map(script => script.src);
+        });
+
+        results.scriptsFound = scriptSources.filter(src => 
+            src.includes('gtm') || src.includes('analytics') || src.includes('stape')
+        );
+
+        // Store network requests for analysis
+        results.networkRequests = networkRequests.filter(req => 
+            req.url.includes('gtm') || 
+            req.url.includes('analytics') || 
+            req.url.includes('stape')
+        );
+
+        results.detectionMethods.push(`Browser scan completed. Found ${results.containerIDs.length} containers.`);
+
+    } catch (error) {
+        results.detectionMethods.push(`Browser detection error: ${error.message}`);
+    } finally {
+        if (browser) {
+            await browser.close();
+        }
+    }
+
+    return results;
 }
