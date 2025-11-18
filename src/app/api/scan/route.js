@@ -12,34 +12,48 @@ export async function GET(request) {
             );
         }
 
+        console.log("Received scan request for URL:", url);
+
         const apiKey = process.env.TAGSTACK_API_KEY;
 
         if (!apiKey) {
+            console.error("TAGSTACK_API_KEY is not configured.");
             return NextResponse.json(
                 { message: "TagStack API key not configured" },
                 { status: 500 }
             );
         }
 
-        const response = await fetch(`https://service.tagstack.io/api/scan?url=${encodeURIComponent(url)}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
+        console.log("Using API key:", apiKey);
+
+        try {
+            const response = await fetch(`https://service.tagstack.io/api/scan?url=${encodeURIComponent(url)}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("Error from TagStack API:", data);
+                return NextResponse.json(
+                    { message: data.message || "Error from TagStack API" },
+                    { status: response.status }
+                );
             }
-        });
 
-        const data = await response.json();
-
-        if (!response.ok) {
+            console.log("Scan successful:", data);
+            return NextResponse.json(data);
+        } catch (error) {
+            console.error("Error during scan request:", error);
             return NextResponse.json(
-                { message: data.message || "Error from TagStack API" },
-                { status: response.status }
+                { message: "Failed to scan URL", error: error.message },
+                { status: 500 }
             );
         }
-
-        return NextResponse.json(data);
-
     } catch (error) {
         console.error("Error scanning URL:", error);
         return NextResponse.json(
