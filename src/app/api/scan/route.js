@@ -35,22 +35,34 @@ export async function GET(request) {
                 }
             });
 
-            const data = await response.json();
+            const contentType = response.headers.get('content-type');
+            let data;
 
-            if (!response.ok) {
-                console.error("Error from TagStack API:", data);
+            if (contentType && contentType.includes('application/json')) {
+                data = await response.json();
+            } else {
+                const text = await response.text();
+                console.error('Unexpected response format:', text);
                 return NextResponse.json(
-                    { message: data.message || "Error from TagStack API" },
+                    { message: 'Unexpected response format from TagStack API', status: response.status, body: text },
                     { status: response.status }
                 );
             }
 
-            console.log("Scan successful:", data);
+            if (!response.ok) {
+                console.error('Error from TagStack API:', data);
+                return NextResponse.json(
+                    { message: data.message || 'Error from TagStack API', status: response.status },
+                    { status: response.status }
+                );
+            }
+
+            console.log('Scan successful:', data);
             return NextResponse.json(data);
         } catch (error) {
-            console.error("Error during scan request:", error);
+            console.error('Error during scan request:', error);
             return NextResponse.json(
-                { message: "Failed to scan URL", error: error.message },
+                { message: 'Failed to scan URL', error: error.message },
                 { status: 500 }
             );
         }
