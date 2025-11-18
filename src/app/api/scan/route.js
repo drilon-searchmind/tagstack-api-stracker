@@ -31,26 +31,41 @@ export async function GET(request) {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                }
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                    'Referer': 'https://tagstack-api-stracker.vercel.app',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                },
             });
 
-            const data = await response.json();
+            const contentType = response.headers.get('content-type');
+            let data;
 
-            if (!response.ok) {
-                console.error("Error from TagStack API:", data);
+            if (contentType && contentType.includes('application/json')) {
+                data = await response.json();
+            } else {
+                const text = await response.text();
+                console.error('Unexpected response format:', text);
                 return NextResponse.json(
-                    { message: data.message || "Error from TagStack API" },
+                    { message: 'Unexpected response format from TagStack API', status: response.status, body: text },
                     { status: response.status }
                 );
             }
 
-            console.log("Scan successful:", data);
+            if (!response.ok) {
+                console.error('Error from TagStack API:', data);
+                return NextResponse.json(
+                    { message: data.message || 'Error from TagStack API', status: response.status },
+                    { status: response.status }
+                );
+            }
+
+            console.log('Scan successful:', data);
             return NextResponse.json(data);
         } catch (error) {
-            console.error("Error during scan request:", error);
+            console.error('Error during scan request:', error);
             return NextResponse.json(
-                { message: "Failed to scan URL", error: error.message },
+                { message: 'Failed to scan URL', error: error.message },
                 { status: 500 }
             );
         }
