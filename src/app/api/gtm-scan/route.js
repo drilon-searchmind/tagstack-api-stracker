@@ -423,7 +423,6 @@ async function detectWithVercelPuppeteer(url) {
     try {
         results.detectionMethods.push('Starting Vercel-compatible browser detection');
         
-        // Always use Vercel-compatible setup (works on both localhost and Vercel)
         let puppeteer;
         let launchOptions = {
             headless: true,
@@ -437,6 +436,7 @@ async function detectWithVercelPuppeteer(url) {
                 ...launchOptions,
                 args: chromium.args,
                 executablePath: await chromium.executablePath(),
+                defaultViewport: chromium.defaultViewport || null,
             };
         } catch (importError) {
             results.detectionMethods.push(`Chromium import failed: ${importError.message}, falling back to local puppeteer`);
@@ -455,51 +455,23 @@ async function detectWithVercelPuppeteer(url) {
                 ]
             };
         }
-        
+
         browser = await puppeteer.launch(launchOptions);
         const page = await browser.newPage();
-        
-        // Set up network request monitoring
-        const networkRequests = [];
-        page.on('request', (request) => {
-            networkRequests.push({
-                url: request.url(),
-                method: request.method(),
-                resourceType: request.resourceType()
-            });
-        });
 
-        // Set up response monitoring for Stape widgets
-        page.on('response', async (response) => {
-            const responseUrl = response.url();
-            
-            // Check if this is a Stape widget configuration request
-            if (responseUrl.includes('stapecdn.com/widget')) {
-                try {
-                    results.detectionMethods.push(`Found Stape config request: ${responseUrl}`);
-                    
-                    const configData = await response.json();
-                    if (configData?.generate?.gtm_id) {
-                        const gtmId = configData.generate.gtm_id;
-                        if (/^GTM-[A-Z0-9]+$/.test(gtmId)) {
-                            results.containerIDs.push(gtmId);
-                            results.detectionMethods.push(`✓ GTM container from browser detection: ${gtmId}`);
-                            results.isGTMPresent = true;
-                        }
-                    }
-                } catch (e) {
-                    results.detectionMethods.push(`Stape config parse error: ${e.message}`);
-                }
-            }
+        // Set browser-like headers
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+        await page.setExtraHTTPHeaders({
+            'Accept-Language': 'en-US,en;q=0.9',
         });
 
         // Navigate to the page
-        await page.goto(url, { 
+        await page.goto(url, {
             waitUntil: 'networkidle2',
-            timeout: 30000 
+            timeout: 30000
         });
 
-        // Wait longer for dynamic content to load (Stape widgets load after 2-5 seconds)
+        // Wait longer for dynamic content to load (e.g., Cloudflare challenges)
         await page.waitForTimeout(5000);
 
         // Check for GTM in the final DOM
