@@ -35,7 +35,7 @@ export default function Header() {
                         />
                         Omnipixel
                         <span className="ml-2 px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-lg">
-                            v 0.2 beta
+                            v 0.3.1 beta
                         </span>
                     </Link>
 
