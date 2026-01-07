@@ -422,85 +422,54 @@ async function detectWithVercelPuppeteer(url) {
     let browser;
     try {
         results.detectionMethods.push('Starting Vercel-compatible browser detection');
-        
-        // Always use Vercel-compatible setup (works on both localhost and Vercel)
-        let puppeteer;
-        let launchOptions = {
-            headless: true,
+
+        const puppeteer = require('puppeteer-extra');
+        const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+        puppeteer.use(StealthPlugin());
+
+        const proxy = process.env.PROXY_SERVER || null; // Set your proxy server here
+        const launchOptions = {
+            headless: false, // Use non-headless mode for better evasion
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
+                '--disable-gpu',
+                ...(proxy ? [`--proxy-server=${proxy}`] : [])
+            ]
         };
 
-        try {
-            results.detectionMethods.push('Using @sparticuz/chromium + puppeteer-core');
-            const chromium = (await import('@sparticuz/chromium')).default;
-            puppeteer = await import('puppeteer-core');
-            launchOptions = {
-                ...launchOptions,
-                args: chromium.args,
-                executablePath: await chromium.executablePath(),
-            };
-        } catch (importError) {
-            results.detectionMethods.push(`Chromium import failed: ${importError.message}, falling back to local puppeteer`);
-            puppeteer = await import('puppeteer');
-            launchOptions = {
-                ...launchOptions,
-                args: [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-accelerated-2d-canvas',
-                    '--no-first-run',
-                    '--no-zygote',
-                    '--single-process',
-                    '--disable-gpu'
-                ]
-            };
-        }
-        
         browser = await puppeteer.launch(launchOptions);
         const page = await browser.newPage();
-        
-        // Set up network request monitoring
-        const networkRequests = [];
-        page.on('request', (request) => {
-            networkRequests.push({
-                url: request.url(),
-                method: request.method(),
-                resourceType: request.resourceType()
-            });
-        });
 
-        // Set up response monitoring for Stape widgets
-        page.on('response', async (response) => {
-            const responseUrl = response.url();
-            
-            // Check if this is a Stape widget configuration request
-            if (responseUrl.includes('stapecdn.com/widget')) {
-                try {
-                    results.detectionMethods.push(`Found Stape config request: ${responseUrl}`);
-                    
-                    const configData = await response.json();
-                    if (configData?.generate?.gtm_id) {
-                        const gtmId = configData.generate.gtm_id;
-                        if (/^GTM-[A-Z0-9]+$/.test(gtmId)) {
-                            results.containerIDs.push(gtmId);
-                            results.detectionMethods.push(`✓ GTM container from browser detection: ${gtmId}`);
-                            results.isGTMPresent = true;
-                        }
-                    }
-                } catch (e) {
-                    results.detectionMethods.push(`Stape config parse error: ${e.message}`);
-                }
-            }
+        // Randomize user agent and viewport
+        await page.setUserAgent(
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
+        );
+        await page.setViewport({
+            width: Math.floor(1024 + Math.random() * 100),
+            height: Math.floor(768 + Math.random() * 100),
         });
 
         // Navigate to the page
-        await page.goto(url, { 
+        await page.goto(url, {
             waitUntil: 'networkidle2',
-            timeout: 30000 
+            timeout: 30000
         });
 
-        // Wait longer for dynamic content to load (Stape widgets load after 2-5 seconds)
+        // Wait longer for dynamic content to load
         await page.waitForTimeout(5000);
+
+        // Check for CAPTCHA
+        const isCaptcha = await page.$('iframe[src*="captcha"], iframe[src*="turnstile"]');
+        if (isCaptcha) {
+            results.detectionMethods.push('CAPTCHA detected. Consider using a CAPTCHA-solving service.');
+            throw new Error('CAPTCHA detected');
+        }
 
         // Check for GTM in the final DOM
         const pageGTMIds = await page.evaluate(() => {
