@@ -181,6 +181,36 @@ class ServerSideGTMDetector {
             page.on('response', async (response) => {
                 const responseUrl = response.url();
                 
+                // Check for Stape script_pixel endpoint
+                if (responseUrl.includes('sp.stapecdn.com/widget/script_pixel')) {
+                    try {
+                        results.detectionMethods.push(`Found Stape script_pixel request: ${responseUrl}`);
+                        const text = await response.text();
+                        // Example content contains lines like:
+                        // const GTM_ID = 'WP9Q2FZV';
+                        // const GTM_URL = 'https://sgtm.pompdelux.dk';
+                        const idMatch = text.match(/\bGTM_ID\s*=\s*['\"]([A-Z0-9_-]+)['\"]/i);
+                        if (idMatch && idMatch[1]) {
+                            const shortId = idMatch[1].toUpperCase();
+                            const fullId = shortId.startsWith('GTM-') ? shortId : `GTM-${shortId}`;
+                            if (/^GTM-[A-Z0-9_-]+$/.test(fullId)) {
+                                results.containerIDs.push(fullId);
+                                results.isGTMPresent = true;
+                                results.detectionMethods.push(`✓ GTM container from Stape script_pixel: ${fullId}`);
+                            }
+                        } else {
+                            results.detectionMethods.push('Stape script_pixel did not contain GTM_ID');
+                        }
+                        // Optionally capture GTM_URL for notes
+                        const urlMatch = text.match(/\bGTM_URL\s*=\s*['\"]([^'\"]+)['\"]/i);
+                        if (urlMatch && urlMatch[1]) {
+                            results.detectionMethods.push(`Stape GTM_URL detected: ${urlMatch[1]}`);
+                        }
+                    } catch (e) {
+                        results.detectionMethods.push(`Stape script_pixel parse error: ${e.message}`);
+                    }
+                }
+
                 // Check if this is a Stape widget configuration request
                 if (responseUrl.includes('stapecdn.com/widget')) {
                     try {
